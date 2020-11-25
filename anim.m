@@ -68,7 +68,7 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         contour(XX_h/1000,YY_h/1000,hhb,[-4000:500:-500],'EdgeColor','k');
         hold off;
         colorbar;
-        colormap jet;
+        colormap(cmocean('balance'));
         caxis([-0.4 0.4]);        
         title(strcat(['Ro=\zeta/|f0| at t=',num2str(t/t1year,'%.2f'),' years']));        
         xlabel('x (km)');
@@ -105,7 +105,7 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         pcolor(XX_q/1000,YY_q/1000,log10(abs(pv)));
         shading interp;
         colorbar;
-        colormap jet;
+        colormap(pmkmp(100,'Swtth'));
         title(strcat(['PV at t=',num2str(t/t1year,'%.2f'),' years']));        
         xlabel('x (km)');
         ylabel('y (km)');         
@@ -168,7 +168,7 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         colorbar;
         title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
         colormap jet; 
-        caxis([0 1000])
+%         caxis([0 1000])
         
       %%% Plot tracer
       case 'b'

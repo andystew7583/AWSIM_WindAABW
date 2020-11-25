@@ -1,7 +1,7 @@
 
 %%% Load parameters   
-local_home_dir = './runs';
-run_name = 'test_3layer';
+local_home_dir = '/Volumes/LaCie/UCLA/Projects/AWSIM_WindAABW/runs';
+run_name = 'test_run';
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);
 
@@ -58,7 +58,8 @@ for n=n0_avg_hu+1:1:n0_avg_hu+N_avg_hu-1
 end
 
 figure(1);
-maxidx = find(~isnan(taux_int),1,'last');
+minidx = find(tt>2*t1year,1);
+maxidx = find(~isnan(taux_int),1,'last'); %%% N.B> maxidx redefined here
 plot(tt(1:maxidx)/t1year,taux_int(1:maxidx));
 
 figure(2);
@@ -89,11 +90,17 @@ hold off
 legend('Mean','Standing','Eddy','Total');
 
 figure(5);
-scatter(taux_int(14:maxidx),hv_int(3,13:maxidx-1))
-[r,p] = corr(taux_int(15:maxidx)',hv_int(3,13:maxidx-2)')
+lag = 2;
+scatter(taux_int(minidx+lag:maxidx),hv_int(3,minidx:maxidx-lag))
+[r,p] = corr(taux_int(minidx+lag:maxidx)',hv_int(3,minidx:maxidx-lag)')
 
 figure(6)
 lag = 0;
-scatter(hv_mean_int(1,13+lag:maxidx),hv_int(3,13:maxidx-lag))
-[r,p] = corr(hv_mean_int(1,13+lag:maxidx)',hv_int(3,13:maxidx-lag)')
+scatter(hv_mean_int(1,minidx+lag:maxidx),hv_int(2,minidx:maxidx-lag))
+[r,p] = corr(hv_mean_int(1,minidx+lag:maxidx)',hv_int(2,minidx:maxidx-lag)')
+
+figure(7)
+lag = 2;
+scatter(hv_mean_int(1,minidx+lag:maxidx),hv_int(3,minidx:maxidx-lag))
+[r,p] = corr(hv_mean_int(1,minidx+lag:maxidx)',hv_int(3,minidx:maxidx-lag)')
   

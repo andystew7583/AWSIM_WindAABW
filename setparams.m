@@ -58,22 +58,26 @@ function setparams (local_home_dir,run_name)
   Cd = 2e-3;                    %%% Quadratic bottom drag
   tau0 = 0.15;                  %%% Wind stress maximum  
   dtau0 = 0.05;                 %%% Amplitude of wind stress fluctuations
-  tauPeriod = t1year;           %%% Wind stress period
+  tauPeriod = t1year/4;         %%% Wind stress period
   tauNrecs = 100;               %%% Number of temporal wind stress records to write  
   deta2 = 1000;                 %%% Initial isopycnal depth change across the channel
   eta_north = [-1350 -2350];    %%% Relaxation layer depths at northern boundary
   eta_south = [-650 -1650];     %%% Relaxation layer deptsh at southern boundary
-  tRelax = 7*t1day;             %%% Relaxation time scale
-  Lrelax = 100*m1km;            %%% Width of nudging zone
+  tRelax = -7*t1day;            %%% Relaxation time scale
+  Psi0 = 2e6;                   %%% Imposed AABW formation and export
+  dPsi0 = 1e6;                  %%% Amplitude of AABW export fluctuations
+  wDiaPeriod = 0;               %%% Diapycnal velocity period                
+  wDiaNrecs = 1;                %%% Number of temporal diapycnal velocity records to write  
+  Lrelax = 100*m1km;            %%% Width of buoyancy forcing zone
   
   %%% Temporal parameters  
   tmax = 20*t1year;
   savefreq = 5*t1day;   
   savefreqEZ = 1*t1day;
-  savefreqAvg = t1year/12;   
-  savefreqUMom = t1year/12;
+  savefreqAvg = tauPeriod/12;   
+  savefreqUMom = tauPeriod/12;
   savefreqVMom= -1*t1year;
-  savefreqThic = 1*t1year/12;
+  savefreqThic = tauPeriod/12;
     
   %%% Rigid lid-related parameters
   useRL = 1; %%% Set to 1 to use rigid lid, or 0 not to  
@@ -132,14 +136,17 @@ function setparams (local_home_dir,run_name)
   
   %%% Set viscosities; 
   A2 = 0;
-  A4 = 0.01*d^3*Umax;
-        
+%   A4 = 0.01*d^3*Umax;
+%   tau4 = 100*t1day;
+%   A4 = d^4/tau4; 
+  A4 = 0;
+  A4smag = 4;
          
   %%% Define parameters 
   PARAMS = addParameter(PARAMS,'Nlay',Nlay,PARM_INT);
   PARAMS = addParameter(PARAMS,'Nx',Nx,PARM_INT);
   PARAMS = addParameter(PARAMS,'Ny',Ny,PARM_INT);
-  PARAMS = addParameter(PARAMS,'Nt',Nt,PARM_INT);
+  PARAMS = addParameter(PARAMS,'dt',dt,PARM_REALF);
   PARAMS = addParameter(PARAMS,'savefrequency',savefreq,PARM_REALF);  
   PARAMS = addParameter(PARAMS,'savefreqEZ',savefreqEZ,PARM_REALF);
   PARAMS = addParameter(PARAMS,'savefreqAvg',savefreqAvg,PARM_REALF);
@@ -150,9 +157,12 @@ function setparams (local_home_dir,run_name)
   PARAMS = addParameter(PARAMS,'Ly',Ly,PARM_REALF);
   PARAMS = addParameter(PARAMS,'h0',h0,PARM_REALF);
   PARAMS = addParameter(PARAMS,'A2',A2,PARM_REALF);
-  PARAMS = addParameter(PARAMS,'A4',A4,PARM_REALF);
+  PARAMS = addParameter(PARAMS,'A4',A4,PARM_REALF);  
+  PARAMS = addParameter(PARAMS,'A4smag',A4smag,PARM_REALF);
   PARAMS = addParameter(PARAMS,'tauPeriod',tauPeriod,PARM_REALF);
   PARAMS = addParameter(PARAMS,'tauNrecs',tauNrecs,PARM_INT);
+  PARAMS = addParameter(PARAMS,'wDiaPeriod',wDiaPeriod,PARM_REALF);
+  PARAMS = addParameter(PARAMS,'wDiaNrecs',wDiaNrecs,PARM_INT);
   PARAMS = addParameter(PARAMS,'linDragCoeff',rb,PARM_REALF);
   PARAMS = addParameter(PARAMS,'quadDragCoeff',Cd,PARM_REALF);
   PARAMS = addParameter(PARAMS,'use_MG',use_MG,PARM_INT);
@@ -313,6 +323,31 @@ function setparams (local_home_dir,run_name)
   
   
   
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%% DIAPYCNAL VELOCITY %%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  wDia = zeros(wDiaNrecs,Nlay+1,Nx,Ny);
+  deltaT_wDia = wDiaPeriod/wDiaNrecs;
+  southIdx = find(yy_h<Lrelax);
+  northIdx = find(yy_h>Ly-Lrelax);
+  Asouth = length(southIdx)*Nx*d^2;
+  Anorth = length(northIdx)*Nx*d^2;  
+  for n=1:wDiaNrecs
+    tt_wDia = (n-1)*deltaT_wDia;
+    if (wDiaPeriod > 0)
+      Psi = Psi0 + dPsi0*cos(2*pi*tt_wDia/wDiaPeriod);
+    else
+      Psi = Psi0;
+    end
+    wDia(n,Nlay,:,southIdx) = - Psi/Asouth; %%% Transport all occurs between deepest two layers
+    wDia(n,Nlay,:,northIdx) = Psi/Anorth;
+  end
+  
+  figure(30);
+  plot(yy_h/1000,squeeze(wDia(1,:,1,:)));
+  legend('1','2','3','4');
+  
 
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -363,6 +398,11 @@ function setparams (local_home_dir,run_name)
   hTimeFile = 'hTime.dat';
   writeDataFile(fullfile(local_run_dir,hTimeFile),hTime);
   PARAMS = addParameter(PARAMS,'hTimeFile',hTimeFile,PARM_STR);  
+  
+  %%% Imposed diapycnal velocity
+  wDiaFile = 'wDiaFile.dat';
+  writeDataFile(fullfile(local_run_dir,wDiaFile),wDia);
+  PARAMS = addParameter(PARAMS,'wDiaFile',wDiaFile,PARM_STR); 
 
   %%% Create the input parameter file
   writeParamFile(pfname,PARAMS);      
