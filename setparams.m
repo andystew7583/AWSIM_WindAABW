@@ -58,12 +58,13 @@ function setparams (local_home_dir,run_name)
   Cd = 2e-3;                    %%% Quadratic bottom drag
   tau0 = 0.15;                  %%% Wind stress maximum  
   dtau0 = 0.05;                 %%% Amplitude of wind stress fluctuations
-  tauPeriod = t1year/4;         %%% Wind stress period
-  tauNrecs = 100;               %%% Number of temporal wind stress records to write  
+  tauPeriod = 0; %t1year/4;         %%% Wind stress period
+  tauNrecs = 1; %100;               %%% Number of temporal wind stress records to write  
   deta2 = 1000;                 %%% Initial isopycnal depth change across the channel
-  eta_north = [-1350 -2350];    %%% Relaxation layer depths at northern boundary
+%   eta_north = [-1350 -2350];    %%% Relaxation layer depths at northern boundary
+  eta_north = [-1500 -2500];    %%% Relaxation layer depths at northern boundary
   eta_south = [-650 -1650];     %%% Relaxation layer deptsh at southern boundary
-  tRelax = -7*t1day;            %%% Relaxation time scale
+  tRelax = 7*t1day;            %%% Relaxation time scale
   Psi0 = 2e6;                   %%% Imposed AABW formation and export
   dPsi0 = 1e6;                  %%% Amplitude of AABW export fluctuations
   wDiaPeriod = 0;               %%% Diapycnal velocity period                
@@ -71,14 +72,21 @@ function setparams (local_home_dir,run_name)
   Lrelax = 100*m1km;            %%% Width of buoyancy forcing zone
   
   %%% Temporal parameters  
-  tmax = 20*t1year;
+  tmax = 100*t1year;
   savefreq = 5*t1day;   
   savefreqEZ = 1*t1day;
-  savefreqAvg = tauPeriod/12;   
-  savefreqUMom = tauPeriod/12;
-  savefreqVMom= -1*t1year;
-  savefreqThic = tauPeriod/12;
-    
+  if (tauPeriod == 0)
+    savefreqAvg = t1year;
+    savefreqUMom = t1year;
+    savefreqVMom= -1;
+    savefreqThic = -1;
+  else
+    savefreqAvg = tauPeriod/12;   
+    savefreqUMom = tauPeriod/12;
+    savefreqVMom= -1*t1year;
+    savefreqThic = tauPeriod/12;
+  end
+  
   %%% Rigid lid-related parameters
   useRL = 1; %%% Set to 1 to use rigid lid, or 0 not to  
   use_MG = 1;
@@ -195,8 +203,13 @@ function setparams (local_home_dir,run_name)
   taux = zeros(tauNrecs,Nx,Ny);
   deltaT_tau = tauPeriod/tauNrecs;
   for n=1:tauNrecs
-    tt_tau = (n-1)*deltaT_tau;
-    taux(n,:,:) = (tau0 + dtau0*cos(2*pi*tt_tau/tauPeriod)) * sin(pi*YY_u/Ly).^2 / rho0;
+    if (tauPeriod > 0)
+      tt_tau = (n-1)*deltaT_tau;
+      tau_amp = tau0 + dtau0*sin(2*pi*tt_tau/tauPeriod);
+    else
+      tau_amp = tau0;
+    end
+    taux(n,:,:) = tau_amp * sin(pi*YY_u/Ly).^2 / rho0;
   end
   
   
@@ -300,7 +313,7 @@ function setparams (local_home_dir,run_name)
   
   %%% Relaxation time scale
   hTime = -ones(Nx,Ny);  
-  hTime(YY_h<Lrelax) = tRelax ./ (1-YY_h(YY_h<Lrelax)/Lrelax);
+%   hTime(YY_h<Lrelax) = tRelax ./ (1-YY_h(YY_h<Lrelax)/Lrelax);
   hTime(YY_h>Ly-Lrelax) = tRelax ./ (1-(Ly-YY_h(YY_h>Ly-Lrelax))/Lrelax);
   
   figure(99)
@@ -336,12 +349,12 @@ function setparams (local_home_dir,run_name)
   for n=1:wDiaNrecs
     tt_wDia = (n-1)*deltaT_wDia;
     if (wDiaPeriod > 0)
-      Psi = Psi0 + dPsi0*cos(2*pi*tt_wDia/wDiaPeriod);
+      Psi = Psi0 + dPsi0*sin(2*pi*tt_wDia/wDiaPeriod);
     else
       Psi = Psi0;
     end
     wDia(n,Nlay,:,southIdx) = - Psi/Asouth; %%% Transport all occurs between deepest two layers
-    wDia(n,Nlay,:,northIdx) = Psi/Anorth;
+%     wDia(n,Nlay,:,northIdx) = Psi/Anorth;
   end
   
   figure(30);
