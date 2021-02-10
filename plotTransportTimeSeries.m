@@ -1,13 +1,17 @@
 
 %%% Load parameters   
-local_home_dir = '/Volumes/LaCie/UCLA/Projects/AWSIM_WindAABW/runs';
-run_name = 'test_run';
+% local_home_dir = '/Volumes/LaCie/UCLA/Projects/AWSIM_WindAABW/runs';
+% run_name = 'test_run';
+local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
+run_name = 'test_wdia_long_N128';
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);
 
 layer = 1;
-minidx = find(yy_v>100*m1km,1,'first');
-maxidx = find(yy_v>Ly-100*m1km,1,'last');
+% minidx = find(yy_v>100*m1km,1,'first');
+% maxidx = find(yy_v>Ly-100*m1km,1,'last');
+minidx = find(yy_v>900*m1km,1,'first');
+maxidx = find(yy_v>Ly-900*m1km,1,'last');
 
 %%% At each time iteration...
 cntr = 1;

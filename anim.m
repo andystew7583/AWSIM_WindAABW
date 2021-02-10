@@ -4,10 +4,7 @@
 %%% Reads in data from the output of 'AWSIM' and makes a movie of the
 %%% layer output.
 %%%
-function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
-
-  %%% Load common matlab scripts/functions
-  addpath ../matlab_common;
+function M = anim (local_home_dir,run_name,var,layer,tmin,tmax) 
 
   %%% Load parameters   
   loadParams;
@@ -262,6 +259,28 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         colormap jet;        
         caxis([-max(max(abs(vv))) max(max(abs(vv)))]);
         
+        
+      case 'vcorr'
+        
+        %%% Load v
+        uu = zeros(Nx,Ny,Nlay);
+        vv = zeros(Nx,Ny,Nlay);
+        for k=1:Nlay
+          data_file = fullfile(dirpath,[OUTN_U,num2str(k-1),'_n=',num2str(n),'.dat']);
+          uu(:,:,k) = readOutputFile(data_file,Nx,Ny);      
+          data_file = fullfile(dirpath,[OUTN_V,num2str(k-1),'_n=',num2str(n),'.dat']);
+          vv(:,:,k) = readOutputFile(data_file,Nx,Ny);      
+        end
+        uabs = sqrt(uu.^2+vv.^2);
+        usurf = vv(:,:,1);
+        usub = vv(:,:,3);
+        scatter(usurf(:),usub(:))
+        xlabel('Surface velocity');
+        ylabel('Subsurface velocity');
+        
+        r = corr(usurf(:),usub(:));
+        disp(r^2);
+
       %%% Plot zonally-averaged zonal velocity
       case 'ua'
         
