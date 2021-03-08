@@ -65,7 +65,7 @@ function setparams (local_home_dir,run_name)
   Hb = 1000;                    %%% Height of topography  
   H = 4000;                     %%% Ocean depth  
   if (Nlay == 2)
-    H0 = [1500 3500];        %%% Initial layer thicknesses - used for wave speed calculation  
+    H0 = [1500 2500];        %%% Initial layer thicknesses - used for wave speed calculation  
   end
   if (Nlay == 3)
     H0 = [1000 1000 2000];        %%% Initial layer thicknesses - used for wave speed calculation  
@@ -75,8 +75,8 @@ function setparams (local_home_dir,run_name)
   Cd = 2e-3;                    %%% Quadratic bottom drag
   tau0 = 0.15;                  %%% Wind stress maximum  
   dtau0 = 0.05;                 %%% Amplitude of wind stress fluctuations
-  tauPeriod = 0; %t1year/4;         %%% Wind stress period
-  tauNrecs = 1; %100;               %%% Number of temporal wind stress records to write  
+  tauPeriod = 500*t1year; %t1year/4;         %%% Wind stress period 
+  tauNrecs = 500*12; %100;               %%% Number of temporal wind stress records to write  
   deta2 = 1000;                 %%% Initial isopycnal depth change across the channel
 %   eta_north = [-1350 -2350];    %%% Relaxation layer depths at northern boundary
   if (Nlay == 2)
@@ -84,31 +84,24 @@ function setparams (local_home_dir,run_name)
     eta_south = [-1150];     %%% Relaxation layer deptsh at southern boundary
   end
   if (Nlay == 3)
-    eta_north = [-1500 -2500];    %%% Relaxation layer depths at northern boundary
+    eta_north = [-1250 -2750];    %%% Relaxation layer depths at northern boundary
     eta_south = [-650 -1650];     %%% Relaxation layer deptsh at southern boundary
   end
   tRelax = 7*t1day;            %%% Relaxation time scale
   Psi0 = 3e6;                   %%% Imposed AABW formation and export
   dPsi0 = 1e6;                  %%% Amplitude of AABW export fluctuations
-  wDiaPeriod = 1500*t1year;               %%% Diapycnal velocity period                
+  wDiaPeriod = 500*t1year;               %%% Diapycnal velocity period                
   wDiaNrecs = 500;                %%% Number of temporal diapycnal velocity records to write  
   Lrelax = 100*m1km;            %%% Width of buoyancy forcing zone
   
   %%% Temporal parameters  
-  tmax = 1500*t1year;
+  tmax = 500*t1year;
   savefreq = 5*t1day;   
-  savefreqEZ = 1*t1day;
-  if (tauPeriod == 0)
-    savefreqAvg = -t1year;
-    savefreqUMom = -t1year;
-    savefreqVMom= -1;
-    savefreqThic = -1;
-  else
-    savefreqAvg = tauPeriod/12;   
-    savefreqUMom = tauPeriod/12;
-    savefreqVMom= -1*t1year;
-    savefreqThic = tauPeriod/12;
-  end
+  savefreqEZ = 1*t1day;  
+  savefreqAvg = -t1year;
+  savefreqUMom = -t1year;
+  savefreqVMom= -1;
+  savefreqThic = -1;  
   restart = hires_run;
   startIdx = 0;
       
@@ -233,16 +226,43 @@ function setparams (local_home_dir,run_name)
   %%% Time-varying wind stress
   taux = zeros(tauNrecs,Nx,Ny);
   deltaT_tau = tauPeriod/tauNrecs;
+  tt_tau = [0:1:(tauNrecs-1)]*deltaT_tau;
+  
+  %%% Periodic oscillation 
+%   if (tauPeriod > 0)        
+%     tau_amp = tau0 + dtau0*sin(2*pi*tt_tau/tauPeriod);                               
+%   else
+%     tau_amp = Psi0;
+%   end 
+  
+  %%% Random fluctuations
+  freq = [0:1:ceil(tauNrecs-1)/2 -floor(tauNrecs/2):1:-1]/tauPeriod;
+  phase = 2*pi*rand(1,tauNrecs);
+%   freqMax = 1/(50*t1year);      
+%   freqWidth = freqMax/4; 
+%   taufft = exp(-((abs(freq)-freqMax)/freqWidth).^2).*exp(1i*phase);  
+  taufft = exp(1i*phase).*abs(freq).^(-.5);
+  taufft(1) = 0;
+  tau_amp = real(ifft(taufft));
+  tau_amp = tau_amp * dtau0/std(tau_amp) + tau0;
+  
+  %%% Create wind stress input matrix
   for n=1:tauNrecs
-    if (tauPeriod > 0)
-      tt_tau = (n-1)*deltaT_tau;
-      tau_amp = tau0 + dtau0*sin(2*pi*tt_tau/tauPeriod);
-    else
-      tau_amp = tau0;
-    end
-    taux(n,:,:) = tau_amp * sin(pi*YY_u/Ly).^2 / rho0;
+    taux(n,:,:) = tau_amp(n) * sin(pi*YY_u/Ly).^2 / rho0;
   end
   
+  %%% Visualize forcing  
+  figure(40);
+  plot(yy_h/1000,squeeze(mean(taux(:,1,:),1)));   
+  
+  figure(41);
+  plot(freq,abs(taufft))
+  
+  figure(42)
+  plot(tt_tau/t1year,tau_amp);
+  hold on
+  plot(tt_tau/t1year,smooth(tau_amp,20*12));
+  hold off;
   
   
   
@@ -396,18 +416,19 @@ function setparams (local_home_dir,run_name)
   tt_wDia = [0:1:(wDiaNrecs-1)]*deltaT_wDia;
   
   %%% Periodic oscillation 
-  if (wDiaPeriod > 0)        
-    Psi = Psi0 + dPsi0*sin(2*pi*tt_wDia/wDiaPeriod);                               
-  else
-    Psi = Psi0;
-  end 
+%   if (wDiaPeriod > 0)        
+%     Psi = Psi0 + dPsi0*sin(2*pi*tt_wDia/wDiaPeriod);                               
+%   else
+%     Psi = Psi0;
+%   end 
   
   %%% Random fluctuations
   freq = [0:1:ceil(wDiaNrecs-1)/2 -floor(wDiaNrecs/2):1:-1]/wDiaPeriod;
   freqMax = 1/(50*t1year);      
   freqWidth = freqMax/4;
   phase = 2*pi*rand(1,wDiaNrecs);
-  Psifft = exp(-((abs(freq)-freqMax)/freqWidth).^2).*exp(1i*phase);
+%   Psifft = exp(-((abs(freq)-freqMax)/freqWidth).^2).*exp(1i*phase);
+  Psifft = exp(1i*phase).*abs(freq).^(-.5);
   Psifft(1) = 0;
   Psi = real(ifft(Psifft));
   Psi = Psi * dPsi0/std(Psi) + Psi0;
@@ -427,7 +448,9 @@ function setparams (local_home_dir,run_name)
 
   figure(32);
   plot(tt_wDia/t1year,Psi);  
-  
+  hold on;
+  plot(tt_wDia/t1year,smooth(Psi,20));
+  hold off;
 
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

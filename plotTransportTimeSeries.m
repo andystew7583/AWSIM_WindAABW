@@ -3,7 +3,7 @@
 % local_home_dir = '/Volumes/LaCie/UCLA/Projects/AWSIM_WindAABW/runs';
 % run_name = 'test_run';
 local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
-run_name = 'test_wdia_long_N128';
+run_name = 'test_wdia_long_N256';
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);
 
