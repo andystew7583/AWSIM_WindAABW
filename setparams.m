@@ -1,5 +1,5 @@
 %%%
-%%% setparams_ACC.m
+%%% setparams.m
 %%%
 %%% Sets parameters for AWSIM. This file configures an ACC-like
 %%% channel.
@@ -45,7 +45,7 @@ function setparams (local_home_dir,run_name)
   PARAMS = {};
   
   %%% Select vertical resolution
-  Nlay = 2;
+  Nlay = 3;
   
   %%% Physical parameters
   rho0 = 1000;                  %%% Reference density 
@@ -84,12 +84,15 @@ function setparams (local_home_dir,run_name)
     eta_south = [-1150];     %%% Relaxation layer deptsh at southern boundary
   end
   if (Nlay == 3)
-    eta_north = [-1250 -2750];    %%% Relaxation layer depths at northern boundary
+%     eta_north = [-1250 -2750];    %%% Relaxation layer depths at northern boundary
+    eta_north = [-1000 -2750];    %%% Relaxation layer depths at northern boundary
     eta_south = [-650 -1650];     %%% Relaxation layer deptsh at southern boundary
   end
   tRelax = 7*t1day;            %%% Relaxation time scale
-  Psi0 = 3e6;                   %%% Imposed AABW formation and export
-  dPsi0 = 1e6;                  %%% Amplitude of AABW export fluctuations
+  Psi0_upper = 3e6;                   %%% Imposed AAIW formation and export
+  dPsi0_upper = 1e6;                  %%% Amplitude of AAIW export fluctuations
+  Psi0_lower = 3e6;                   %%% Imposed AABW formation and export
+  dPsi0_lower = 1e6;                  %%% Amplitude of AABW export fluctuations
   wDiaPeriod = 500*t1year;               %%% Diapycnal velocity period                
   wDiaNrecs = 500;                %%% Number of temporal diapycnal velocity records to write  
   Lrelax = 100*m1km;            %%% Width of buoyancy forcing zone
@@ -232,7 +235,7 @@ function setparams (local_home_dir,run_name)
 %   if (tauPeriod > 0)        
 %     tau_amp = tau0 + dtau0*sin(2*pi*tt_tau/tauPeriod);                               
 %   else
-%     tau_amp = Psi0;
+%     tau_amp = tau0;
 %   end 
   
   %%% Random fluctuations
@@ -415,43 +418,61 @@ function setparams (local_home_dir,run_name)
   Anorth = length(northIdx)*Nx*d^2; 
   tt_wDia = [0:1:(wDiaNrecs-1)]*deltaT_wDia;
   
-  %%% Periodic oscillation 
+  %%% Periodic oscillation in AABW formation 
 %   if (wDiaPeriod > 0)        
-%     Psi = Psi0 + dPsi0*sin(2*pi*tt_wDia/wDiaPeriod);                               
+%     Psi_lower = Psi0_lower + dPsi0_lower*sin(2*pi*tt_wDia/wDiaPeriod);                               
 %   else
-%     Psi = Psi0;
+%     Psi_lower = Psi0_lower;
 %   end 
+%   Psi_upper = 0*tt_wDia;
   
-  %%% Random fluctuations
+  %%% Random fluctuations in AABW formation and AAIW formation
   freq = [0:1:ceil(wDiaNrecs-1)/2 -floor(wDiaNrecs/2):1:-1]/wDiaPeriod;
-  freqMax = 1/(50*t1year);      
-  freqWidth = freqMax/4;
-  phase = 2*pi*rand(1,wDiaNrecs);
+%   freqMax = 1/(50*t1year);      
+%   freqWidth = freqMax/4;
 %   Psifft = exp(-((abs(freq)-freqMax)/freqWidth).^2).*exp(1i*phase);
-  Psifft = exp(1i*phase).*abs(freq).^(-.5);
-  Psifft(1) = 0;
-  Psi = real(ifft(Psifft));
-  Psi = Psi * dPsi0/std(Psi) + Psi0;
+  phase_upper = 2*pi*rand(1,wDiaNrecs);
+  phase_lower = 2*pi*rand(1,wDiaNrecs);
+  Psifft_upper = exp(1i*phase_upper).*abs(freq).^(-.5);
+  Psifft_upper(1) = 0;
+  Psifft_lower = exp(1i*phase_lower).*abs(freq).^(-.5);
+  Psifft_lower(1) = 0;
+  Psi_upper = real(ifft(Psifft_upper));
+  Psi_upper = Psi_upper * dPsi0_upper/std(Psi_upper) + Psi0_upper;
+  Psi_lower = real(ifft(Psifft_lower));
+  Psi_lower = Psi_lower * dPsi0_lower/std(Psi_lower) + Psi0_lower;
   
   %%% Create diapycnal velocity matrix
   for n=1:wDiaNrecs
-    wDia(n,Nlay,:,southIdx) = - Psi(n)/Asouth; %%% Transport all occurs between deepest two layers
-%     wDia(n,Nlay,:,northIdx) = Psi/Anorth;
+    wDia(n,Nlay,:,southIdx) = - Psi_lower(n)/Asouth; %%% AABW formation all occurs between deepest two layers
+    if (Nlay > 2)
+      wDia(n,Nlay-1,:,southIdx) = Psi_upper(n)/Asouth; %%% AAIW formation all occurs between lightest two layers
+    end
   end
   
+  %%% Visualizations
   figure(30);
   plot(yy_h/1000,squeeze(wDia(1,:,1,:)));
   legend('1','2','3','4');
   
   figure(31);
-  plot(freq,abs(Psifft))
+  loglog(freq,abs(Psifft_upper));
+  hold on;
+  loglog(freq,abs(Psifft_lower));
+  hold off;
+  legend('upper cell','lower cell');
 
   figure(32);
-  plot(tt_wDia/t1year,Psi);  
+  plot(tt_wDia/t1year,Psi_upper);  
   hold on;
-  plot(tt_wDia/t1year,smooth(Psi,20));
+  plot(tt_wDia/t1year,smooth(Psi_upper,24));
+  plot(tt_wDia/t1year,Psi_lower);  
+  plot(tt_wDia/t1year,smooth(Psi_lower,24));
   hold off;
-
+  legend('Upper cell','Upper cell (2 year smoothing)','Lower cell','Lower cell (2 year smoothing)');
+  
+  corr(smooth(Psi_upper,24),smooth(Psi_lower,24))
+  
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%%%% CREATE INPUT FILES %%%%%
