@@ -17,7 +17,7 @@
 %%% AABW_freq       Period of AABW formation fluctuations in s
 %%% 
 function setparams (local_home_dir,run_name, ...
-  is_spinup,grid_size,...
+  is_spinup,grid_size, ...
   tau_mean,tau_pert,tau_freq, ...
   AABW_mean,AABW_pert,AABW_freq)
 
@@ -41,9 +41,9 @@ function setparams (local_home_dir,run_name, ...
   use_cluster = true;
   use_intel = false;
   use_pbs = use_cluster;
-  uname = '<insert here>';
-  cluster_addr = '<insert here>';
-  cluster_home_dir = '<insert here>';
+  uname = 'astewart';
+  cluster_addr = 'caolila.atmos.ucla.edu';
+  cluster_home_dir = '/data2/astewart/AWSIM_WindAABW/runs';
   
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,7 +55,7 @@ function setparams (local_home_dir,run_name, ...
   PARAMS = {};
   
   %%% Select vertical resolution
-  Nlay = 2;
+  Nlay = 3;
   
   %%% Physical parameters
   rho0 = 1000;                  %%% Reference density 
@@ -95,10 +95,7 @@ function setparams (local_home_dir,run_name, ...
     eta_south = [-650 -1650];     %%% Relaxation layer deptsh at southern boundary
   end
   tRelax = 7*t1day;            %%% Relaxation time scale
-  Lrelax = 100*m1km;            %%% Width of buoyancy forcing zone
-  
-  %%% TODO how to set number of records?
-  %%% TODO how to set restart parameter?
+  Lrelax = 100*m1km;            %%% Width of buoyancy forcing zone    
   
   %%% Time-varying wind stress parameters
   tau0 = tau_mean;                  %%% Wind stress maximum  (reference value 0.15)
@@ -118,15 +115,44 @@ function setparams (local_home_dir,run_name, ...
   wDiaPeriod = AABW_freq;               %%% Diapycnal velocity period (reference value (reference value 500 years)                
   wDiaNrecs = 24;                %%% Number of temporal diapycnal velocity records to write  
   
+  %%% Frequency of diagnostic output chosen to resolve the smallest forcing
+  %%% period
+  diag_freq = -1;
+  if ((AABW_freq > 0) && (tau_freq > 0))
+    diag_freq = min([AABW_freq tau_freq]);
+  else
+    if (AABW_freq > 0)
+      diag_freq = AABW_freq;
+    else
+      if (tau_freq > 0)
+        diag_freq = tau_freq;
+      end
+    end
+  end
+  
   %%% Temporal parameters  
-  tmax = 500*t1year;
-  savefreq = 5*t1day;   
-  savefreqEZ = 1*t1day;  
-  savefreqAvg = -t1year;
-  savefreqUMom = -t1year;
-  savefreqVMom= -1;
-  savefreqThic = -1;  
-  restart = hires_run;
+  if (is_spinup)
+    %%% In spinup simulations we don't need much output - just enough to
+    %%% check the model state looks ok and check equilibration
+    tmax = 100*t1year; 
+    savefreq = 1*t1year;   
+    savefreqEZ = 1*t1day;  
+    savefreqAvg = -t1year;
+    savefreqUMom = -t1year;
+    savefreqVMom= -1;
+    savefreqThic = -1;     
+  else
+    %%% For diagnostic runs we need lots of output, sufficient to resolve
+    %%% the frequency of the forcing
+    tmax = 10*diag_freq; %%% Long enough to sample many forcing cycles
+    savefreq = diag_freq  / 12; %%% Enough subdivisions to fully resolve the forcing cycle 
+    savefreqEZ = min([1*t1day, diag_freq/12]);  
+    savefreqAvg = diag_freq/12;
+    savefreqUMom = diag_freq/12;
+    savefreqVMom= -1;
+    savefreqThic = -1;  
+  end
+  restart = true;
   startIdx = 0;
       
   %%% Rigid lid-related parameters
@@ -278,14 +304,8 @@ function setparams (local_home_dir,run_name, ...
   figure(40);
   plot(yy_h/1000,squeeze(mean(taux(:,1,:),1)));   
   
-  figure(41);
-  plot(freq,abs(taufft))
-  
   figure(42)
   plot(tt_tau/t1year,tau_amp);
-  hold on
-  plot(tt_tau/t1year,smooth(tau_amp,20*12));
-  hold off;
   
   
   
@@ -479,13 +499,13 @@ function setparams (local_home_dir,run_name, ...
   figure(30);
   plot(yy_h/1000,squeeze(wDia(1,:,1,:)));
   legend('1','2','3','4');
-  
-  figure(31);
-  loglog(freq,abs(Psifft_upper));
-  hold on;
-  loglog(freq,abs(Psifft_lower));
-  hold off;
-  legend('upper cell','lower cell');
+%   
+%   figure(31);
+%   loglog(freq,abs(Psifft_upper));
+%   hold on;
+%   loglog(freq,abs(Psifft_lower));
+%   hold off;
+%   legend('upper cell','lower cell');
 
   figure(32);
   plot(tt_wDia/t1year,Psi_upper);  
@@ -496,7 +516,7 @@ function setparams (local_home_dir,run_name, ...
   hold off;
   legend('Upper cell','Upper cell (2 year smoothing)','Lower cell','Lower cell (2 year smoothing)');
   
-  corr(smooth(Psi_upper,24),smooth(Psi_lower,24))
+  
   
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
