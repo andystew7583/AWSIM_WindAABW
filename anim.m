@@ -285,16 +285,23 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
       case 'ua'
         
         %%% Load u
-        data_file = fullfile(dirpath,[OUTN_U,num2str(layer-1),'_n=',num2str(n),'.dat']);
-        uu = readOutputFile(data_file,Nx,Ny);    
-            
+        uu = zeros(Nx,Ny,Nlay);
+        for k=1:Nlay
+          data_file = fullfile(dirpath,[OUTN_U,num2str(k-1),'_n=',num2str(n),'.dat']);
+          uu(:,:,k) = readOutputFile(data_file,Nx,Ny);    
+        end        
+        
         %%% Make the plot
-        plot(yy_u/1000,mean(uu,1));        
+        plot(yy_u/1000,mean(uu(:,:,1),1));        
         hold on
+        for k=2:Nlay
+          plot(yy_u/1000,mean(uu(:,:,k),1));        
+        end
         plot(yy_u/1000,0*yy_u,'k--');
         hold off
         title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));        
-        axis([0 Ly/1000 -1 1]);
+        axis([0 Ly/1000 -.3 .3]);
+        
         
       %%% Plot zonally-averaged meridional velocity
       case 'va'

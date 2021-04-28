@@ -6,13 +6,23 @@
 %%%
 %%% local_home_dir  Directory to hold simulation folder
 %%% run_name        Name of simulation
+%%% is_spinup       Set true if this is a spinup simulation, false if we're
+%%%                 averaging diagnostics online
+%%% grid_size       Number of meridional grid points
+%%% tau_mean        Time-mean wind stress in N/m^2
+%%% tau_pert        Amplitude of wind stress fluctuations in N/m^2
+%%% tau_freq        Period of wind stress fluctuations in s
+%%% AABW_mean       Time-mean AABW formation in Sv
+%%% AABW_pert       Amplitude of AABW formation fluctuations in Sv
+%%% AABW_freq       Period of AABW formation fluctuations in s
 %%% 
-function setparams (local_home_dir,run_name)
+function setparams (local_home_dir,run_name, ...
+  is_spinup,grid_size,...
+  tau_mean,tau_pert,tau_freq, ...
+  AABW_mean,AABW_pert,AABW_freq)
 
-  %%% Set true to run at high resolution. You will need to use regridOutput
-  %%% to create an initialization file, derived from a lower-resolution
-  %%% run.
-  hires_run = false;
+  %%% Set true to run with random forcing, rather than periodic forcing.
+  random_forcing = false;
 
   %%% Load constant parameters 
   constants;
@@ -28,7 +38,7 @@ function setparams (local_home_dir,run_name)
   %%% Cluster config
   %%% NOTE: You will need to edit matlab_common/createRunScript to add a
   %%% configuration for your cluster!
-  use_cluster = false;
+  use_cluster = true;
   use_intel = false;
   use_pbs = use_cluster;
   uname = '<insert here>';
@@ -45,7 +55,7 @@ function setparams (local_home_dir,run_name)
   PARAMS = {};
   
   %%% Select vertical resolution
-  Nlay = 3;
+  Nlay = 2;
   
   %%% Physical parameters
   rho0 = 1000;                  %%% Reference density 
@@ -73,10 +83,6 @@ function setparams (local_home_dir,run_name)
   E0 = 0.01;                    %%% Initial EKE density
   rb = 0e-3;                    %%% Linear bottom drag
   Cd = 2e-3;                    %%% Quadratic bottom drag
-  tau0 = 0.15;                  %%% Wind stress maximum  
-  dtau0 = 0.05;                 %%% Amplitude of wind stress fluctuations
-  tauPeriod = 500*t1year; %t1year/4;         %%% Wind stress period 
-  tauNrecs = 500*12; %100;               %%% Number of temporal wind stress records to write  
   deta2 = 1000;                 %%% Initial isopycnal depth change across the channel
 %   eta_north = [-1350 -2350];    %%% Relaxation layer depths at northern boundary
   if (Nlay == 2)
@@ -89,13 +95,28 @@ function setparams (local_home_dir,run_name)
     eta_south = [-650 -1650];     %%% Relaxation layer deptsh at southern boundary
   end
   tRelax = 7*t1day;            %%% Relaxation time scale
-  Psi0_upper = 3e6;                   %%% Imposed AAIW formation and export
-  dPsi0_upper = 1e6;                  %%% Amplitude of AAIW export fluctuations
-  Psi0_lower = 3e6;                   %%% Imposed AABW formation and export
-  dPsi0_lower = 1e6;                  %%% Amplitude of AABW export fluctuations
-  wDiaPeriod = 500*t1year;               %%% Diapycnal velocity period                
-  wDiaNrecs = 500;                %%% Number of temporal diapycnal velocity records to write  
   Lrelax = 100*m1km;            %%% Width of buoyancy forcing zone
+  
+  %%% TODO how to set number of records?
+  %%% TODO how to set restart parameter?
+  
+  %%% Time-varying wind stress parameters
+  tau0 = tau_mean;                  %%% Wind stress maximum  (reference value 0.15)
+  dtau0 = tau_pert;                 %%% Amplitude of wind stress fluctuations (reference value 0.05)
+  tauPeriod = tau_freq;           %%% Wind stress period (reference value 500 years)
+  tauNrecs = 24;            %%% Number of temporal wind stress records to write  
+%   tau0 = 0.15;                  %%% Wind stress maximum  
+%   dtau0 = 0;                 %%% Amplitude of wind stress fluctuations
+%   tauPeriod = 500*t1year;       %%% Wind stress period 
+%   tauNrecs = 1;            %%% Number of temporal wind stress records to write  
+  
+  %%% Time-varying buoyancy forcing parameters
+  Psi0_upper = 0e6;                   %%% Imposed AAIW formation and export (reference value 1.5 Sv)
+  dPsi0_upper = 0.5e6;                  %%% Amplitude of AAIW export fluctuations (reference value 0.5 Sv)
+  Psi0_lower = AABW_mean*1e6;                   %%% Imposed AABW formation and export (reference value 1.5 Sv)
+  dPsi0_lower = AABW_pert*1e6;                  %%% Amplitude of AABW export fluctuations (reference value 0.5 Sv)
+  wDiaPeriod = AABW_freq;               %%% Diapycnal velocity period (reference value (reference value 500 years)                
+  wDiaNrecs = 24;                %%% Number of temporal diapycnal velocity records to write  
   
   %%% Temporal parameters  
   tmax = 500*t1year;
@@ -117,13 +138,8 @@ function setparams (local_home_dir,run_name)
   SOR_opt_freq = 1000; 
   
   %%% Grids  
-  if (hires_run)
-    Ny = 256;
-    Nx = 512;
-  else
-    Ny = 128;
-    Nx = 256;  
-  end
+  Ny = grid_size;
+  Nx = 2*Ny;
   d = Ly/Ny;  
   Lx = Nx*d;
   xx_q = 0:d:Lx;
@@ -231,23 +247,27 @@ function setparams (local_home_dir,run_name)
   deltaT_tau = tauPeriod/tauNrecs;
   tt_tau = [0:1:(tauNrecs-1)]*deltaT_tau;
   
-  %%% Periodic oscillation 
-%   if (tauPeriod > 0)        
-%     tau_amp = tau0 + dtau0*sin(2*pi*tt_tau/tauPeriod);                               
-%   else
-%     tau_amp = tau0;
-%   end 
+  %%% Create wind stress time series
+  if (random_forcing)
   
-  %%% Random fluctuations
-  freq = [0:1:ceil(tauNrecs-1)/2 -floor(tauNrecs/2):1:-1]/tauPeriod;
-  phase = 2*pi*rand(1,tauNrecs);
-%   freqMax = 1/(50*t1year);      
-%   freqWidth = freqMax/4; 
-%   taufft = exp(-((abs(freq)-freqMax)/freqWidth).^2).*exp(1i*phase);  
-  taufft = exp(1i*phase).*abs(freq).^(-.5);
-  taufft(1) = 0;
-  tau_amp = real(ifft(taufft));
-  tau_amp = tau_amp * dtau0/std(tau_amp) + tau0;
+    %%% Random fluctuations
+    freq = [0:1:ceil(tauNrecs-1)/2 -floor(tauNrecs/2):1:-1]/tauPeriod;
+    phase = 2*pi*rand(1,tauNrecs);
+    taufft = exp(1i*phase).*abs(freq).^(-.5);
+    taufft(1) = 0;
+    tau_amp = real(ifft(taufft));
+    tau_amp = tau_amp * dtau0/std(tau_amp) + tau0;
+
+  else
+    
+    %%% Periodic oscillation 
+    if (tauPeriod > 0)        
+      tau_amp = tau0 + dtau0*sin(2*pi*tt_tau/tauPeriod);                               
+    else
+      tau_amp = tau0*ones(size(tt_tau));
+    end 
+  
+  end
   
   %%% Create wind stress input matrix
   for n=1:tauNrecs
@@ -418,30 +438,35 @@ function setparams (local_home_dir,run_name)
   Anorth = length(northIdx)*Nx*d^2; 
   tt_wDia = [0:1:(wDiaNrecs-1)]*deltaT_wDia;
   
-  %%% Periodic oscillation in AABW formation 
-%   if (wDiaPeriod > 0)        
-%     Psi_lower = Psi0_lower + dPsi0_lower*sin(2*pi*tt_wDia/wDiaPeriod);                               
-%   else
-%     Psi_lower = Psi0_lower;
-%   end 
-%   Psi_upper = 0*tt_wDia;
-  
-  %%% Random fluctuations in AABW formation and AAIW formation
-  freq = [0:1:ceil(wDiaNrecs-1)/2 -floor(wDiaNrecs/2):1:-1]/wDiaPeriod;
-%   freqMax = 1/(50*t1year);      
-%   freqWidth = freqMax/4;
-%   Psifft = exp(-((abs(freq)-freqMax)/freqWidth).^2).*exp(1i*phase);
-  phase_upper = 2*pi*rand(1,wDiaNrecs);
-  phase_lower = 2*pi*rand(1,wDiaNrecs);
-  Psifft_upper = exp(1i*phase_upper).*abs(freq).^(-.5);
-  Psifft_upper(1) = 0;
-  Psifft_lower = exp(1i*phase_lower).*abs(freq).^(-.5);
-  Psifft_lower(1) = 0;
-  Psi_upper = real(ifft(Psifft_upper));
-  Psi_upper = Psi_upper * dPsi0_upper/std(Psi_upper) + Psi0_upper;
-  Psi_lower = real(ifft(Psifft_lower));
-  Psi_lower = Psi_lower * dPsi0_lower/std(Psi_lower) + Psi0_lower;
-  
+  %%% Create diapycnal velocity time series
+  if (random_forcing)
+    
+    %%% Random fluctuations in AABW formation and AAIW formation
+    freq = [0:1:ceil(wDiaNrecs-1)/2 -floor(wDiaNrecs/2):1:-1]/wDiaPeriod;
+    phase_upper = 2*pi*rand(1,wDiaNrecs);
+    phase_lower = 2*pi*rand(1,wDiaNrecs);
+    Psifft_upper = exp(1i*phase_upper).*abs(freq).^(-.5);
+    Psifft_upper(1) = 0;
+    Psifft_lower = exp(1i*phase_lower).*abs(freq).^(-.5);
+    Psifft_lower(1) = 0;
+    Psi_upper = real(ifft(Psifft_upper));
+    Psi_upper = Psi_upper * dPsi0_upper/std(Psi_upper) + Psi0_upper;
+    Psi_lower = real(ifft(Psifft_lower));
+    Psi_lower = Psi_lower * dPsi0_lower/std(Psi_lower) + Psi0_lower;
+    
+  else
+    
+    %%% Periodic oscillation in AABW formation 
+    if (wDiaPeriod > 0)        
+      Psi_lower = Psi0_lower + dPsi0_lower*sin(2*pi*tt_wDia/wDiaPeriod);                               
+      Psi_upper = Psi0_upper + dPsi0_upper*sin(2*pi*tt_wDia/wDiaPeriod);                               
+    else
+      Psi_lower = Psi0_lower*ones(size(tt_wDia));
+      Psi_upper = Psi0_upper*ones(size(tt_wDia));
+    end         
+    
+  end
+    
   %%% Create diapycnal velocity matrix
   for n=1:wDiaNrecs
     wDia(n,Nlay,:,southIdx) = - Psi_lower(n)/Asouth; %%% AABW formation all occurs between deepest two layers

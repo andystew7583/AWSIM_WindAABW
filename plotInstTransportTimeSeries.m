@@ -5,9 +5,10 @@
 %%%
 
 %%% Options
-run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
+run_name = 'ACC_AABW_ML_doubleMOC'; %%% Run to analyze
+% run_name = 'ACC_AABW_ML_randWdia_randTau_white'; %%% Run to analyze
 tmin = 50*t1year; %%% Actual analysis period
-tmax = 300*t1year;
+tmax = 450*t1year;
 Dsmooth = 73; %%% Interval between smoothed times. N.B. 73 snapshots/year
 Nsmooth = 5*73; %%% Smoothing window width. N.B. 73 snapshots/year
 
@@ -41,7 +42,6 @@ for m=1:Nlay
 end
 
 %%% Define AABW time series
-Taabw = hv_yint(Nlay,:);
 Nt = size(Taabw,2);
 
 %%% Geostrophic reconstruction. Needs to be computed for each snapshot to
