@@ -9,17 +9,21 @@
 %%% is_spinup       Set true if this is a spinup simulation, false if we're
 %%%                 averaging diagnostics online
 %%% grid_size       Number of meridional grid points
+%%% num_layers      Number of isopycnal layers to use (should be 2 or 3)
 %%% tau_mean        Time-mean wind stress in N/m^2
 %%% tau_pert        Amplitude of wind stress fluctuations in N/m^2
 %%% tau_freq        Period of wind stress fluctuations in s
 %%% AABW_mean       Time-mean AABW formation in Sv
 %%% AABW_pert       Amplitude of AABW formation fluctuations in Sv
 %%% AABW_freq       Period of AABW formation fluctuations in s
+%%% quad_drag       Quadratic drag coefficient (dimensionless)
+%%% lin_drag        Linear drag coefficient (m/s)
 %%% 
 function setparams (local_home_dir,run_name, ...
-  is_spinup,grid_size, ...
+  is_spinup,grid_size,num_layers, ...
   tau_mean,tau_pert,tau_freq, ...
-  AABW_mean,AABW_pert,AABW_freq)
+  AABW_mean,AABW_pert,AABW_freq, ...
+  quad_drag, lin_drag)
 
   %%% Set true to run with random forcing, rather than periodic forcing.
   random_forcing = false;
@@ -55,7 +59,7 @@ function setparams (local_home_dir,run_name, ...
   PARAMS = {};
   
   %%% Select vertical resolution
-  Nlay = 3;
+  Nlay = num_layers;
   
   %%% Physical parameters
   rho0 = 1000;                  %%% Reference density 
@@ -81,17 +85,17 @@ function setparams (local_home_dir,run_name, ...
     H0 = [1000 1000 2000];        %%% Initial layer thicknesses - used for wave speed calculation  
   end
   E0 = 0.01;                    %%% Initial EKE density
-  rb = 0e-3;                    %%% Linear bottom drag
-  Cd = 2e-3;                    %%% Quadratic bottom drag
+  rb = lin_drag;                %%% Linear bottom drag (reference value 2e-4 m/s)
+  Cd = quad_drag;               %%% Quadratic bottom drag (reference value 2e-3)
   deta2 = 1000;                 %%% Initial isopycnal depth change across the channel
 %   eta_north = [-1350 -2350];    %%% Relaxation layer depths at northern boundary
   if (Nlay == 2)
-    eta_north = [-2000];    %%% Relaxation layer depths at northern boundary
+    eta_north = [-1750];    %%% Relaxation layer depths at northern boundary
     eta_south = [-1150];     %%% Relaxation layer deptsh at southern boundary
   end
   if (Nlay == 3)
-%     eta_north = [-1250 -2750];    %%% Relaxation layer depths at northern boundary
-    eta_north = [-1000 -2750];    %%% Relaxation layer depths at northern boundary
+    eta_north = [-1250 -2750];    %%% Relaxation layer depths at northern boundary
+%     eta_north = [-1000 -2750];    %%% Relaxation layer depths at northern boundary
     eta_south = [-650 -1650];     %%% Relaxation layer deptsh at southern boundary
   end
   tRelax = 7*t1day;            %%% Relaxation time scale
