@@ -119,43 +119,72 @@ function setparams (local_home_dir,run_name, ...
   wDiaPeriod = AABW_freq;               %%% Diapycnal velocity period (reference value (reference value 500 years)                
   wDiaNrecs = 24;                %%% Number of temporal diapycnal velocity records to write  
   
-  %%% Frequency of diagnostic output chosen to resolve the smallest forcing
-  %%% period
-  diag_freq = -1;
-  if ((AABW_freq > 0) && (tau_freq > 0))
-    diag_freq = min([AABW_freq tau_freq]);
-  else
-    if (AABW_freq > 0)
-      diag_freq = AABW_freq;
+
+  if ((AABW_freq <= 0) && (tau_freq <= 0))
+    
+    %%% For runs with totally steady forcing, just use fixed output
+    %%% frequencies
+    if (is_spinup)
+      tmax = 200*t1year; 
+      savefreq = 1*t1year;   
+      savefreqEZ = 1*t1day;  
+      savefreqAvg = -t1year;
+      savefreqUMom = -t1year;
+      savefreqVMom= -1;
+      savefreqThic = -1;     
     else
-      if (tau_freq > 0)
-        diag_freq = tau_freq;
+      tmax = 20*t1year; 
+      savefreq = 5*t1day;   
+      savefreqEZ = 1*t1day;  
+      savefreqAvg = 5*t1year;
+      savefreqUMom = 5*t1year;
+      savefreqVMom= -1;
+      savefreqThic = -1; 
+    end
+    
+  else
+    
+    %%% Frequency of diagnostic output chosen to resolve the smallest forcing
+    %%% period
+    diag_freq = -1;
+    if ((AABW_freq > 0) && (tau_freq > 0))
+      diag_freq = min([AABW_freq tau_freq]);
+    else
+      if (AABW_freq > 0)
+        diag_freq = AABW_freq;
+      else
+        if (tau_freq > 0)
+          diag_freq = tau_freq;
+        end
       end
     end
-  end
+
+    %%% Temporal parameters  
+    if (is_spinup)
+      %%% In spinup simulations we don't need much output - just enough to
+      %%% check the model state looks ok and check equilibration
+      tmax = 200*t1year; 
+      savefreq = 1*t1year;   
+      savefreqEZ = 1*t1day;  
+      savefreqAvg = -t1year;
+      savefreqUMom = -t1year;
+      savefreqVMom= -1;
+      savefreqThic = -1;     
+    else
+      %%% For diagnostic runs we need lots of output, sufficient to resolve
+      %%% the frequency of the forcing
+      tmax = 10*diag_freq; %%% Long enough to sample many forcing cycles
+      savefreq = diag_freq  / 12; %%% Enough subdivisions to fully resolve the forcing cycle 
+      savefreqEZ = min([1*t1day, diag_freq/12]);  
+      savefreqAvg = diag_freq/12;
+      savefreqUMom = diag_freq/12;
+      savefreqVMom= -1;
+      savefreqThic = -1;  
+    end
+    
+  end  
   
-  %%% Temporal parameters  
-  if (is_spinup)
-    %%% In spinup simulations we don't need much output - just enough to
-    %%% check the model state looks ok and check equilibration
-    tmax = 100*t1year; 
-    savefreq = 1*t1year;   
-    savefreqEZ = 1*t1day;  
-    savefreqAvg = -t1year;
-    savefreqUMom = -t1year;
-    savefreqVMom= -1;
-    savefreqThic = -1;     
-  else
-    %%% For diagnostic runs we need lots of output, sufficient to resolve
-    %%% the frequency of the forcing
-    tmax = 10*diag_freq; %%% Long enough to sample many forcing cycles
-    savefreq = diag_freq  / 12; %%% Enough subdivisions to fully resolve the forcing cycle 
-    savefreqEZ = min([1*t1day, diag_freq/12]);  
-    savefreqAvg = diag_freq/12;
-    savefreqUMom = diag_freq/12;
-    savefreqVMom= -1;
-    savefreqThic = -1;  
-  end
+  %%% Always restart from a previous run
   restart = true;
   startIdx = 0;
       

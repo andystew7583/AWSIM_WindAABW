@@ -37,13 +37,14 @@ Nlay = 2;
 tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 tau_pert = 0;
 tau_freq = 0;
-AABW_mean = [-1.5 0 1.5];
+% AABW_mean = [-1.5 0 1.5];
+AABW_mean = [-.75 .75];
 AABW_pert = 0;
 AABW_freq = 0;
-% quad_drag = 2e-3;
-% lin_drag = 0e-4;
-quad_drag = 0e-3;
-lin_drag = 2e-4;
+quad_drag = 2e-3;
+lin_drag = 0e-4;
+% quad_drag = 0e-3;
+% lin_drag = 2e-4;
 
 %%% Wind perturbation batch
 % tau_mean = [0 0.05 0.1 0.15 0.2];
@@ -101,7 +102,13 @@ for n_tm=1:length(tau_mean)
 
                     dir_pickup = '../AWSIM/runs';
                     run_name_pickup = 'ACC_AABW_ML_doubleMOC_hires';
-                    pickup_iter = 7300;                
+                    pickup_iter = 7300;        
+%                     dir_pickup = local_home_dir;
+%                     run_name_pickup = constructRunName (true,Ny,Nlay, ...
+%                             tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
+%                             AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
+%                             quad_drag(n_Cd),lin_drag(n_rb));
+%                     pickup_iter = 100;
 
                   %%% Start hi-res run from the end of the low-res run
                   else %%% N=256               
@@ -120,7 +127,7 @@ for n_tm=1:length(tau_mean)
                 else
 
                   dir_pickup = local_home_dir;
-                  run_name_pickup = constructRunName (false,Ny,Nlay, ...
+                  run_name_pickup = constructRunName (true,Ny,Nlay, ...
                             tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                             AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
                             quad_drag(n_Cd),lin_drag(n_rb));
@@ -128,7 +135,7 @@ for n_tm=1:length(tau_mean)
 
                 end
 
-                %%% Copy/regrid pickup files to the simulation directory
+                %%% Copy/regrid pickup files to the simulation directory                
                 regridOutput(dir_pickup,run_name_pickup,pickup_iter,2*Ny,Ny,fullfile(local_home_dir,run_name),0);  
 
                 %%% Add lines to run_batch file to execute this simulation  
