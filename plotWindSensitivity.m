@@ -21,19 +21,20 @@ Nlay = 2;
 
 %%% Averaging period
 tmin = 0.5*t1year;
-tmax = 20.5*t1year;
+tmax = 30.5*t1year;
 
 %%% Parameters defining the batch of runs to plot
 tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 tau_pert = 0;
 tau_freq = 0;
-AABW_mean = [-1.5 0 1.5];
+AABW_mean = [-1.5 -.75 .75 1.5];
+% AABW_mean = [-1.5 0 1.5];
 AABW_pert = 0;
-AABW_freq = 0;
-% quad_drag = 2e-3;
-% lin_drag = 0e-4;
-quad_drag = 0e-3;
-lin_drag = 2e-4;
+% AABW_freq = 0;
+quad_drag = 2e-3;
+lin_drag = 0e-4;
+% quad_drag = 0e-3;
+% lin_drag = 2e-4;
 N_am = length(AABW_mean);
 N_tm = length(tau_mean);
 
@@ -66,10 +67,12 @@ end
 
 %%% Make figure
 figure(1);
-semilogx(tau_mean,Tbc(2,:)/1e6,'o-');
+semilogx(tau_mean,Tbc(3,:)/1e6,'o-');
 hold on;
 semilogx(tau_mean,Tbc(1,:)/1e6,'o-');
-semilogx(tau_mean,Tbc(3,:)/1e6,'o-');
+semilogx(tau_mean,Tbc(2,:)/1e6,'o-');
+semilogx(tau_mean,Tbc(4,:)/1e6,'o-');
+% semilogx(tau_mean,Tbc(5,:)/1e6,'o-');
 hold off;
 xlabel('Wind Stress (N/m^2)');
 ylabel('Baroclinic transport (Sv)');

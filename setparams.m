@@ -18,12 +18,15 @@
 %%% AABW_freq       Period of AABW formation fluctuations in s
 %%% quad_drag       Quadratic drag coefficient (dimensionless)
 %%% lin_drag        Linear drag coefficient (m/s)
+%%% restart_index   Index of the output file used to restart the run
+%%% end_time        Simulation end time (s)
 %%% 
 function setparams (local_home_dir,run_name, ...
   is_spinup,grid_size,num_layers, ...
   tau_mean,tau_pert,tau_freq, ...
   AABW_mean,AABW_pert,AABW_freq, ...
-  quad_drag, lin_drag)
+  quad_drag, lin_drag, ...
+  restart_index, end_time)
 
   %%% Set true to run with random forcing, rather than periodic forcing.
   random_forcing = false;
@@ -125,7 +128,7 @@ function setparams (local_home_dir,run_name, ...
     %%% For runs with totally steady forcing, just use fixed output
     %%% frequencies
     if (is_spinup)
-      tmax = 200*t1year; 
+      tmax = end_time; 
       savefreq = 1*t1year;   
       savefreqEZ = 1*t1day;  
       savefreqAvg = -t1year;
@@ -133,7 +136,7 @@ function setparams (local_home_dir,run_name, ...
       savefreqVMom= -1;
       savefreqThic = -1;     
     else
-      tmax = 20*t1year; 
+      tmax = end_time; 
       savefreq = 5*t1day;   
       savefreqEZ = 1*t1day;  
       savefreqAvg = 5*t1year;
@@ -163,7 +166,7 @@ function setparams (local_home_dir,run_name, ...
     if (is_spinup)
       %%% In spinup simulations we don't need much output - just enough to
       %%% check the model state looks ok and check equilibration
-      tmax = 200*t1year; 
+      tmax = end_time; 
       savefreq = 1*t1year;   
       savefreqEZ = 1*t1day;  
       savefreqAvg = -t1year;
@@ -186,7 +189,7 @@ function setparams (local_home_dir,run_name, ...
   
   %%% Always restart from a previous run
   restart = true;
-  startIdx = 0;
+  startIdx = restart_index;
       
   %%% Rigid lid-related parameters
   useRL = 1; %%% Set to 1 to use rigid lid, or 0 not to  
