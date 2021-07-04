@@ -5,10 +5,12 @@
 %%%
 
 %%% Run to load
-run_name = 'ACC_AABW_ML_doubleMOC';
+% run_name = 'ACC_AABW_ML_doubleMOC';
+run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
 
 %%% Load parameters   
-local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
+% local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
+local_home_dir = '/data2/astewart/AWSIM/runs';
 prod_dir = fullfile(local_home_dir,'AWSIM_WindAABW_products');
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);

@@ -13,13 +13,13 @@ local_home_dir = './runs';
 %%% Spinup simulations are long and produce no diagnostic, diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
 %%% period
-is_spinup = false;
+is_spinup = true;
 
 %%% Set true to extend a previous run
 extend_run = false;
 
 %%% Grid resolution 
-Ny = 128;
+Ny = 256;
 Nlay = 2;
 
 %%% N.B. Batches run so far:
@@ -44,8 +44,8 @@ Nlay = 2;
 % AABW_freq = 0;
 
 %%% Reference values
-tau_mean = [0.03 0.05 0.1 0.17 0.3];
-% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
+% tau_mean = [0.03 0.05 0.1 0.17 0.3];
+tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 % tau_mean = [0.01 0.017 0.03 0.05 0.1];
 % tau_mean = [0.01 0.017];
 tau_pert = 0;
@@ -53,8 +53,8 @@ tau_freq = 0;
 % AABW_mean = [-1.5 1.5];
 % AABW_mean = [-1.5 0 1.5];
 % AABW_mean = [-.75 .75];
-% AABW_mean = [-1.5 -.75 .75 1.5];
-AABW_mean = 0;
+AABW_mean = [-1.5 -.75 0 .75 1.5];
+% AABW_mean = 0;
 AABW_pert = 0;
 AABW_freq = 0;
 quad_drag = 2e-3;

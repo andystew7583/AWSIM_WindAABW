@@ -141,7 +141,7 @@ function setparams (local_home_dir,run_name, ...
       savefreqEZ = 1*t1day;  
       savefreqAvg = 5*t1year;
       savefreqUMom = 5*t1year;
-      savefreqVMom= -1;
+      savefreqVMom= 5*t1year;
       savefreqThic = -1; 
     end
     
