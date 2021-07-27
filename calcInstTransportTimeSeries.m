@@ -5,8 +5,8 @@
 %%%
 
 %%% Run to load
-% run_name = 'ACC_AABW_ML_doubleMOC';
-run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
+run_name = 'ACC_AABW_ML_doubleMOC_hires';
+% run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
 
 %%% Load parameters   
 % local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
@@ -21,7 +21,7 @@ rho0 = 1000;
 tend = 500*t1year;
 
 %%% Time step to use for chunking data into files
-tchunk = 500*t1year;
+tchunk = 50*t1year;
 
 %%% Define range of latitudes over which to compute AABW transport
 ymin = 100*m1km;

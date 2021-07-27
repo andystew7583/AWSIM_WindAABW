@@ -8,12 +8,12 @@
 constants;
 
 %%% Directory to store runs
-local_home_dir = './runs';
+local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM_WindAABW/runs';
 
 %%% Spinup simulations are long and produce no diagnostic, diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
 %%% period
-is_spinup = true;
+is_spinup = false;
 
 %%% Set true to extend a previous run
 extend_run = false;
@@ -116,7 +116,7 @@ for n_tm=1:length(tau_mean)
                       restart_idx = pickup_iter;
                       end_time = 500*t1year;
                     else
-                      dir_pickup = '../AWSIM/runs';
+                      dir_pickup = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
                       run_name_pickup = 'ACC_AABW_ML_doubleMOC_hires';
                       pickup_iter = 7300;  
                       restart_idx = 0;
