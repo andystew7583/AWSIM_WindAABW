@@ -7,7 +7,7 @@ function run_name = constructRunName ( ...
     is_spinup,grid_size,num_layers, ...
     tau_mean,tau_pert,tau_freq, ...
     AABW_mean,AABW_pert,AABW_freq, ...
-    quad_drag, lin_drag)
+    quad_drag, lin_drag, topog_width)
 
   %%% Load definitions
   constants;
@@ -27,7 +27,10 @@ function run_name = constructRunName ( ...
   run_name = [run_name,'_wDiaP',num2str(AABW_pert)];
   run_name = [run_name,'_wDiaF',num2str(AABW_freq/t1day)];
   run_name = [run_name,'_Cd',num2str(quad_drag,'%.3e')];
-  run_name = [run_name,'_rb',num2str(lin_drag,'%.3e')];
+  run_name = [run_name,'_rb',num2str(lin_drag,'%.3e')];  
+  if (topog_width ~= 150)
+    run_name = [run_name,'_Wb',num2str(topog_width)];
+  end  
   
   %%% Distinguish spinup runs from runs with online averaging
   if (is_spinup)  

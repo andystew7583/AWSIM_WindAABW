@@ -9,8 +9,8 @@ run_name = 'ACC_AABW_ML_doubleMOC_hires';
 % run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
 
 %%% Load parameters   
-% local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
-local_home_dir = '/data2/astewart/AWSIM/runs';
+local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
+% local_home_dir = '/data2/astewart/AWSIM/runs';
 prod_dir = fullfile(local_home_dir,'AWSIM_WindAABW_products');
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);
@@ -74,133 +74,99 @@ for n=1:wDiaNrecs
 end
 fclose(fid);
 
-%%% At each time iteration...
-cntr = 0;
-tt = zeros(1,Nframes);
-hu_int = NaN*ones(Nlay,Nx,Nframes);
-hv_int = NaN*ones(Nlay,Ny,Nframes);
-hv_mean_int = NaN*ones(Nlay,Ny,Nframes);
-hv_stand_int = NaN*ones(Nlay,Ny,Nframes);
-Tacc = zeros(1,Nframes);
-Taabw = zeros(1,Nframes);
-Taaiw = zeros(1,Nframes);
-h = zeros(Nlay,Nx,Ny);
-v = zeros(Nlay,Nx,Ny);
-u = zeros(Nlay,Nx,Ny);
-ssh = zeros(Nx,Ny,Nframes);
-obp = zeros(Nx,Ny,Nframes);
-for n=n0+1:1:n0+Nframes-1   
 
-  %%% Current simulation time    
-  t = startTime + (n-n0)*dt_s;
-  
-  if (t>tend)
-    break;
-  end
-  
-  cntr = cntr + 1
-  
-  tt(n) = t;
- 
-  %%% Load instantaneous model state
-  for k=1:Nlay
-    data_file = fullfile(dirpath,[OUTN_H,num2str(k-1),'_n=',num2str(n),'.dat']);
-    h(k,:,:) = readOutputFile(data_file,Nx,Ny);
-  end  
-  for k=1:Nlay
-    data_file = fullfile(dirpath,[OUTN_U,num2str(k-1),'_n=',num2str(n),'.dat']);
-    u(k,:,:) = readOutputFile(data_file,Nx,Ny);
-  end
-  for k=1:Nlay
-    data_file = fullfile(dirpath,[OUTN_V,num2str(k-1),'_n=',num2str(n),'.dat']);
-    v(k,:,:) = readOutputFile(data_file,Nx,Ny);
-  end
-  h_v = 0.5*(h(:,:,1:Ny)+h(:,:,[2:Ny 1])); %%% Interpolate to v-points
-  h_u = 0.5*(h(:,1:Nx,:)+h(:,[2:Nx 1],:)); %%% Interpolate to u-points
-  data_file = fullfile(dirpath,[OUTN_PI,'_n=',num2str(n),'.dat']);
-  pi = readOutputFile(data_file,Nx,Ny);
-  
-  %%% Calculate sea surface height and ocean bottom pressure
-  ssh(:,:,cntr) = pi/g;
-  obp(:,:,cntr) = pi + squeeze(sum(gtild.*h,1));
-  
-  %%% Meridional transport decomposition
-  hv_int(:,:,cntr) = squeeze(sum(h_v.*v.*dx,2));
-  hv_mean_int(:,:,cntr) = squeeze(mean(h_v,2) .* mean(v,2) * Lx);
-  hv_stand_int(:,:,cntr) = hv_int(:,:,cntr) - hv_mean_int(:,:,cntr);  
-  
-  %%% Zonal transport
-  hu_int(:,:,cntr) = squeeze(sum(h_u.*u.*dy,3));  
-  
-  %%% AABW export
-  yminidx = find(yy_v>ymin,1,'first');
-  ymaxidx = find(yy_v>ymax,1,'first');
-  Taabw(cntr) = squeeze(mean(hv_int(Nlay,yminidx:ymaxidx,cntr),2));
-  
-  %%% AAIW export
-  if (Nlay > 2)
-    Taaiw(cntr) = squeeze(mean(hv_int(1,yminidx:ymaxidx,cntr),2));
-  end
-  
-  %%% ACC transport
-  Tacc(cntr) = sum(hu_int(:,1,cntr),1);
-  
-end
 
-%%% Remove missing data
-tt = tt(1:cntr);
-hu_int = hu_int(:,:,1:cntr);
-hv_int = hv_int(:,:,1:cntr);
-hv_mean_int = hv_mean_int(:,:,1:cntr);
-hv_stand_int = hv_stand_int(:,:,1:cntr);
-ssh = ssh(:,:,1:cntr);
-obp = obp(:,:,1:cntr);
-Taabw = Taabw(1:cntr);
-Taaiw = Taaiw(1:cntr);
-Tacc = Tacc(1:cntr);
+%%% Precompute iteration numbers and output times
+iters = n0+1:1:n0+Nframes-1;
+tt = startTime + (iters-n0)*dt_s;
+iters(tt>tend) = [];
+tt(tt>tend) = [];
 
 
 
 %%% Save to .mat file
 Nchunk = ceil(tend/tchunk);
-if (Nchunk == 1)
+
+%%% Break data into chunks of length tchunk
+% for m = 1:Nchunk
+for m = 2:Nchunk %%% TODO fix
+
+  chunkidx = find((tt>=(m-1)*tchunk) & (tt<m*tchunk));
+  tt_chunk = tt(chunkidx);
+  chunklen = length(chunkidx);
   
-  %%% Save all data in a single ile
-  save(fullfile(prod_dir,[run_name,'_InstTrans.mat']), ...
+  %%% At each time iteration...
+  cntr = 0;
+  hu_int_chunk = NaN*ones(Nlay,Nx,chunklen);
+  hv_int_chunk = NaN*ones(Nlay,Ny,chunklen);
+  hv_mean_int_chunk = NaN*ones(Nlay,Ny,chunklen);
+  hv_stand_int_chunk = NaN*ones(Nlay,Ny,chunklen);
+  Tacc_chunk = zeros(1,chunklen);
+  Taabw_chunk = zeros(1,chunklen);
+  Taaiw_chunk = zeros(1,chunklen);
+  h = zeros(Nlay,Nx,Ny);
+  v = zeros(Nlay,Nx,Ny);
+  u = zeros(Nlay,Nx,Ny);
+  ssh_chunk = zeros(Nx,Ny,chunklen);
+  obp_chunk = zeros(Nx,Ny,chunklen);
+  for n=chunkidx
+
+    cntr = cntr + 1;
+    disp(['Chunk ',num2str(m),' iteration ',num2str(n)]);
+        
+    %%% Load instantaneous model state
+    for k=1:Nlay
+      data_file = fullfile(dirpath,[OUTN_H,num2str(k-1),'_n=',num2str(n),'.dat']);
+      h(k,:,:) = readOutputFile(data_file,Nx,Ny);
+    end  
+    for k=1:Nlay
+      data_file = fullfile(dirpath,[OUTN_U,num2str(k-1),'_n=',num2str(n),'.dat']);
+      u(k,:,:) = readOutputFile(data_file,Nx,Ny);
+    end
+    for k=1:Nlay
+      data_file = fullfile(dirpath,[OUTN_V,num2str(k-1),'_n=',num2str(n),'.dat']);
+      v(k,:,:) = readOutputFile(data_file,Nx,Ny);
+    end
+    h_v = 0.5*(h(:,:,1:Ny)+h(:,:,[2:Ny 1])); %%% Interpolate to v-points
+    h_u = 0.5*(h(:,1:Nx,:)+h(:,[2:Nx 1],:)); %%% Interpolate to u-points
+    data_file = fullfile(dirpath,[OUTN_PI,'_n=',num2str(n),'.dat']);
+    pi = readOutputFile(data_file,Nx,Ny);
+
+    %%% Calculate sea surface height and ocean bottom pressure
+    ssh_chunk(:,:,cntr) = pi/g;
+    obp_chunk(:,:,cntr) = pi + squeeze(sum(gtild.*h,1));
+
+    %%% Meridional transport decomposition
+    hv_int_chunk(:,:,cntr) = squeeze(sum(h_v.*v.*dx,2));
+    hv_mean_int_chunk(:,:,cntr) = squeeze(mean(h_v,2) .* mean(v,2) * Lx);
+    hv_stand_int_chunk(:,:,cntr) = hv_int_chunk(:,:,cntr) - hv_mean_int_chunk(:,:,cntr);  
+
+    %%% Zonal transport
+    hu_int_chunk(:,:,cntr) = squeeze(sum(h_u.*u.*dy,3));  
+
+    %%% AABW export
+    yminidx = find(yy_v>ymin,1,'first');
+    ymaxidx = find(yy_v>ymax,1,'first');
+    Taabw_chunk(cntr) = squeeze(mean(hv_int_chunk(Nlay,yminidx:ymaxidx,cntr),2));
+
+    %%% AAIW export
+    if (Nlay > 2)
+      Taaiw_chunk(cntr) = squeeze(mean(hv_int_chunk(1,yminidx:ymaxidx,cntr),2));
+    end
+
+    %%% ACC transport
+    Tacc_chunk(cntr) = sum(hu_int_chunk(:,1,cntr),1);
+
+  end
+
+  %%% Write chunk to .mat file
+  save(fullfile(prod_dir,[run_name,'_InstTrans_chunk',num2str(m),'.mat']), ...
     'wDiaTimes','wDiaInt', ...
     'tauTimes','tauMax', ...
     'XX_h','YY_h','hhb','gg', ...
-    'tt','ssh','obp', ...
-    'hu_int','hv_int','hv_mean_int','hv_stand_int', ...
-    'Tacc','Taabw','Taaiw', ...
+    'tt_chunk','ssh_chunk','obp_chunk', ...
+    'hu_int_chunk','hv_int_chunk','hv_mean_int_chunk','hv_stand_int_chunk', ...
+    'Tacc_chunk','Taabw_chunk','Taaiw_chunk', ...
     '-v7.3');
-  
-else
-  
-  %%% Break data into chunks of length tchunk
-  for n = 1:Nchunk
-    
-    chunkidx = find((tt>=(n-1)*tchunk) & (tt<n*tchunk))
-    tt_chunk = tt(chunkidx);
-    hu_int_chunk = hu_int(:,:,chunkidx);
-    hv_int_chunk = hv_int(:,:,chunkidx);
-    hv_mean_int_chunk = hv_mean_int(:,:,chunkidx);
-    hv_stand_int_chunk = hv_stand_int(:,:,chunkidx);
-    ssh_chunk = ssh(:,:,chunkidx);
-    obp_chunk = obp(:,:,chunkidx);
-    Taabw_chunk = Taabw(chunkidx);
-    Taaiw_chunk = Taaiw(chunkidx);
-    Tacc_chunk = Tacc(chunkidx);
-    
-    save(fullfile(prod_dir,[run_name,'_InstTrans_chunk',num2str(n),'.mat']), ...
-      'wDiaTimes','wDiaInt', ...
-      'tauTimes','tauMax', ...
-      'XX_h','YY_h','hhb','gg', ...
-      'tt_chunk','ssh_chunk','obp_chunk', ...
-      'hu_int_chunk','hv_int_chunk','hv_mean_int_chunk','hv_stand_int_chunk', ...
-      'Tacc_chunk','Taabw_chunk','Taaiw_chunk', ...
-      '-v7.3');
-    
-  end
-  
+
 end

@@ -18,6 +18,7 @@
 %%% AABW_freq       Period of AABW formation fluctuations in s
 %%% quad_drag       Quadratic drag coefficient (dimensionless)
 %%% lin_drag        Linear drag coefficient (m/s)
+%%% topog_width     Zonal width of topographic bump in km
 %%% restart_index   Index of the output file used to restart the run
 %%% end_time        Simulation end time (s)
 %%% 
@@ -25,7 +26,7 @@ function setparams (local_home_dir,run_name, ...
   is_spinup,grid_size,num_layers, ...
   tau_mean,tau_pert,tau_freq, ...
   AABW_mean,AABW_pert,AABW_freq, ...
-  quad_drag, lin_drag, ...
+  quad_drag, lin_drag, topog_width, ...
   restart_index, end_time)
 
   %%% Set true to run with random forcing, rather than periodic forcing.
@@ -77,8 +78,9 @@ function setparams (local_home_dir,run_name, ...
     geff = [g .5e-2 .2e-2];        
   end
   h0 = 0;                       %%% Salmon layer thickness
-  Xb = 1000*m1km;               %%% Zonal position of topography  
-  Wb = 150*m1km;                %%% Zonal width of topography  
+%   Xb = 1000*m1km;               %%% Zonal position of topography  
+  Xb = 1600*m1km;               %%% Zonal position of topography  
+  Wb = topog_width*m1km;                %%% Zonal width of topography  
   Hb = 1000;                    %%% Height of topography  
   H = 4000;                     %%% Ocean depth  
   if (Nlay == 2)
@@ -189,8 +191,9 @@ function setparams (local_home_dir,run_name, ...
   end  
   
   %%% Always restart from a previous run
-  restart = true;
   startIdx = restart_index;
+  restart = startIdx >= 0;
+  
       
   %%% Rigid lid-related parameters
   useRL = 1; %%% Set to 1 to use rigid lid, or 0 not to  
@@ -229,9 +232,10 @@ function setparams (local_home_dir,run_name, ...
   
   %%% Plot topography
   figure(10);
-  pcolor(XX_h,YY_h,etab);
+  surf(XX_h,YY_h,etab);
   shading interp;
   colorbar;
+%   plot(xx_h,etab(:,1));
   
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
