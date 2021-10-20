@@ -30,6 +30,10 @@ Nlay = 2;
 %%% 0 1.5], quad_drag = 0e-3, lin_drag = 2e-4
 %%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
 %%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width
+%%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width = [40 80 300 600];
+%%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width = [40 80 150 300 600], topog_height = [500 1500];
 
 
 
@@ -44,6 +48,8 @@ Nlay = 2;
 % AABW_mean = 1.5;
 % AABW_pert = 0;
 % AABW_freq = 0;
+% topog_width = 150;
+% topog_height = 1000;
 
 %%% Perturbation values
 % tau_mean = [0.03 0.05 0.1 0.17 0.3];
@@ -63,7 +69,8 @@ quad_drag = 2e-3;
 lin_drag = 0e-4;
 % quad_drag = 0e-3;
 % lin_drag = 2e-4;
-topog_width = [40 80 300 600];
+topog_width = [40 80 150 300 600];
+topog_height = [500 1500];
 
 %%% Wind perturbation batch
 % tau_mean = [0 0.05 0.1 0.15 0.2];
@@ -97,81 +104,83 @@ for n_tm=1:length(tau_mean)
             for n_Cd = 1:length(quad_drag)
               for n_rb = 1:length(lin_drag)
                 for n_Wb = 1:length(topog_width)
+                  for n_Hb = 1:length(topog_height)
 
-                  %%% Generate simulation name
-                  run_name = constructRunName (is_spinup,Ny,Nlay, ...
-                              tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
-                              AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                              quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb));
+                    %%% Generate simulation name
+                    run_name = constructRunName (is_spinup,Ny,Nlay, ...
+                                tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
+                                AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
+                                quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb));
 
-                  %%% Identify previous simulation from which to copy the restart file
-                  if (is_spinup)
+                    %%% Identify previous simulation from which to copy the restart file
+                    if (is_spinup)
 
-                    %%% Start low-res run from a previous long integration in the
-                    %%% same geometry
-                    if (Ny == 128)
+                      %%% Start low-res run from a previous long integration in the
+                      %%% same geometry
+                      if (Ny == 128)
 
-                      if (extend_run)
+                        if (extend_run)
+                          dir_pickup = local_home_dir;
+                          run_name_pickup = run_name;
+                          pickup_iter = findLastOutput(dir_pickup,run_name_pickup);
+                          restart_idx = pickup_iter;
+                          end_time = 500*t1year;
+                        else
+                          dir_pickup = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
+                          run_name_pickup = 'ACC_AABW_ML_doubleMOC_hires';
+                          pickup_iter = 7300;  
+                          restart_idx = -1;
+                          end_time = 200*t1year;
+                        end
+
+                      %%% Start hi-res run from the end of the low-res run
+                      else %%% N=256               
+
                         dir_pickup = local_home_dir;
-                        run_name_pickup = run_name;
-                        pickup_iter = findLastOutput(dir_pickup,run_name_pickup);
-                        restart_idx = pickup_iter;
-                        end_time = 500*t1year;
-                      else
-                        dir_pickup = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
-                        run_name_pickup = 'ACC_AABW_ML_doubleMOC_hires';
-                        pickup_iter = 7300;  
-                        restart_idx = -1;
-                        end_time = 200*t1year;
+                        run_name_pickup = constructRunName (true,Ny/2,Nlay, ...
+                                tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
+                                AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
+                                quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb));
+                        pickup_iter = findLastOutput(dir_pickup,run_name_pickup);        
+                        restart_idx = 0;
+                        end_time = 100*t1year;
+
                       end
 
-                    %%% Start hi-res run from the end of the low-res run
-                    else %%% N=256               
+                    %%% Diagnostic runs start from the end of the corresponding
+                    %%% spinup runs
+                    else
 
                       dir_pickup = local_home_dir;
-                      run_name_pickup = constructRunName (true,Ny/2,Nlay, ...
-                              tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
-                              AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                              quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb));
-                      pickup_iter = findLastOutput(dir_pickup,run_name_pickup);        
+                      run_name_pickup = constructRunName (true,Ny,Nlay, ...
+                                tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
+                                AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
+                                quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb));
+                      pickup_iter = findLastOutput(dir_pickup,run_name_pickup);    
                       restart_idx = 0;
-                      end_time = 100*t1year;
+                      end_time = 30*t1year;
 
                     end
 
-                  %%% Diagnostic runs start from the end of the corresponding
-                  %%% spinup runs
-                  else
+                    %%% Create simulation directory and input files
+                    setparams (local_home_dir,run_name,is_spinup,Ny,Nlay, ...
+                                tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
+                                AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
+                                quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb), ...
+                                restart_idx, end_time);
 
-                    dir_pickup = local_home_dir;
-                    run_name_pickup = constructRunName (true,Ny,Nlay, ...
-                              tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
-                              AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                              quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb));
-                    pickup_iter = findLastOutput(dir_pickup,run_name_pickup);    
-                    restart_idx = 0;
-                    end_time = 30*t1year;
+                    %%% Copy/regrid pickup files to the simulation directory
+                    if (~extend_run && (restart_idx >= 0))
+                      regridOutput(dir_pickup,run_name_pickup,pickup_iter,2*Ny,Ny,fullfile(local_home_dir,run_name),0);  
+                    end
+
+                    %%% Add lines to run_batch file to execute this simulation  
+                    fprintf(run_batch_file,'cd %s\n',run_name);
+                    fprintf(run_batch_file,'sh Make_fftw.sh\n');
+                    fprintf(run_batch_file,'sh Run.sh\n');
+                    fprintf(run_batch_file,'cd ..\n');
 
                   end
-
-                  %%% Create simulation directory and input files
-                  setparams (local_home_dir,run_name,is_spinup,Ny,Nlay, ...
-                              tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
-                              AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                              quad_drag(n_Cd),lin_drag(n_rb), topog_width(n_Wb), ...
-                              restart_idx, end_time);
-
-                  %%% Copy/regrid pickup files to the simulation directory
-                  if (~extend_run && (restart_idx >= 0))
-                    regridOutput(dir_pickup,run_name_pickup,pickup_iter,2*Ny,Ny,fullfile(local_home_dir,run_name),0);  
-                  end
-
-                  %%% Add lines to run_batch file to execute this simulation  
-                  fprintf(run_batch_file,'cd %s\n',run_name);
-                  fprintf(run_batch_file,'sh Make_fftw.sh\n');
-                  fprintf(run_batch_file,'sh Run.sh\n');
-                  fprintf(run_batch_file,'cd ..\n');
-                  
                 end
               end
             end            

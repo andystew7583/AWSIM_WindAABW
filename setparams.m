@@ -19,6 +19,7 @@
 %%% quad_drag       Quadratic drag coefficient (dimensionless)
 %%% lin_drag        Linear drag coefficient (m/s)
 %%% topog_width     Zonal width of topographic bump in km
+%%% topog_height    Height of topographic bump in m
 %%% restart_index   Index of the output file used to restart the run
 %%% end_time        Simulation end time (s)
 %%% 
@@ -27,7 +28,7 @@ function setparams (local_home_dir,run_name, ...
   tau_mean,tau_pert,tau_freq, ...
   AABW_mean,AABW_pert,AABW_freq, ...
   quad_drag, lin_drag, topog_width, ...
-  restart_index, end_time)
+  topog_height,restart_index, end_time)
 
   %%% Set true to run with random forcing, rather than periodic forcing.
   random_forcing = false;
@@ -81,7 +82,7 @@ function setparams (local_home_dir,run_name, ...
 %   Xb = 1000*m1km;               %%% Zonal position of topography  
   Xb = 1600*m1km;               %%% Zonal position of topography  
   Wb = topog_width*m1km;                %%% Zonal width of topography  
-  Hb = 1000;                    %%% Height of topography  
+  Hb = topog_height;                    %%% Height of topography  
   H = 4000;                     %%% Ocean depth  
   if (Nlay == 2)
     H0 = [1500 2500];        %%% Initial layer thicknesses - used for wave speed calculation  
