@@ -130,7 +130,11 @@ for n_tm=1:length(tau_mean)
                           run_name_pickup = 'ACC_AABW_ML_doubleMOC_hires';
                           pickup_iter = 7300;  
                           restart_idx = -1;
-                          end_time = 200*t1year;
+                          if (tau_mean(n_tm)<0.05)
+                            end_time = 400*t1year;
+                          else
+                            end_time = 200*t1year;
+                          end
                         end
 
                       %%% Start hi-res run from the end of the low-res run
