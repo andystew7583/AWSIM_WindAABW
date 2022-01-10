@@ -3,7 +3,7 @@
 %%%
 
 %%% Run to load
-run_name = 'ACC_AABW_Ny128_Nlay2_tauM0.3_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_diags'
+run_name = 'ACC_AABW_Ny128_Nlay2_tauM0.03_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_diags'
 % run_name = 'ACC_AABW_ML_randWdia_randTau_white';
 
 %%% Load parameters   
@@ -61,6 +61,10 @@ hdMdx_mean = hh_w_tavg.*(MM_tavg(1:Nx,:,:)-MM_tavg([Nx 1:Nx-1],:,:))/dx;
 hdMdy_mean = hh_s_tavg.*(MM_tavg(:,1:Ny,:)-MM_tavg(:,[Ny 1:Ny-1],:))/dy;  
 hdMdx_eddy = hdMdx_tavg - hdMdx_mean;
 hdMdy_eddy = hdMdy_tavg - hdMdy_mean;
+
+%%% Depth-integrated EKE
+EKE_zint = sum(husq_eddy+hvsq_eddy,3);
+EKE_zavg = EKE_zint ./ sum(hh_tavg,3);
 
 %%% Eddy diffusivity estimate
 f0 = mean(mean(2*Omega_z));
@@ -197,11 +201,14 @@ colorbar;
 colormap redblue;
 title('Mean upper layer thickness');
 
+
+
+%%% Test estimate of kappa via linear regression
 figure(fignum);
 fignum = fignum+1;
 scatter(diff_curl_twa(:),-(gg(2)/f0^2) * IPT_eddy(:));
-kap_vort_1 = diff_curl_twa(:) \ (-(gg(2)/f0^2) * IPT_eddy(:));
-kap_vort_2 = 1 / ((-(gg(2)/f0^2) * IPT_eddy(:)) \ diff_curl_twa(:));
+kap_vort_1 = diff_curl_twa(:) \ (-(gg(2)/f0^2) * IPT_eddy(:))
+kap_vort_2 = 1 / ((-(gg(2)/f0^2) * IPT_eddy(:)) \ diff_curl_twa(:))
 hold on;
 plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],kap_vort_1*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'k--');
 plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],kap_vort_2*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'r--');
@@ -212,29 +219,150 @@ colorbar;
 colormap redblue;
 title('IPT/TWA curl relationship');
 
-denom = diff(uu_twa,1,3).^2 + diff(vv_twa,1,3).^2;
-numer = (gg(2)/f0^2)*pdedx_eddy(:,:,2:Nlay) .* diff(uu_twa,1,3) + pdedy_eddy(:,:,2:Nlay) .* diff(vv_twa,1,3);
+
+
+
+%%% Another attempt, removing small EKE values
+denom = diff_curl_twa(:);
+numer = -(gg(2)/f0^2) * IPT_eddy(:);
+cond = EKE_zavg;
+idx = find(cond<median(cond)+2*iqr(cond));
+denom(idx) = [];
+numer(idx) = [];
+cond(idx) = [];
+kap_vort_1 = denom(:) \ numer(:)
+kap_vort_2 = 1 / (numer(:) \ denom(:))
+length(numer)
+length(diff_curl_twa(:))
+
+X = [denom,numer];
+stdX = std(X);
+[coeff,score,roots] = pca(X./std(X));
+t = [min(score(:,1)), max(score(:,1))];
+dirVect = coeff(:,1);
+kap_pca = std(numer)/std(denom)/coeff(1,1)
+
+figure(fignum);
+fignum = fignum+1;
+% scatter(numer(:),denom(:),10,EKE_zint(:))
+scatter(denom(:),numer(:),10,cond(:));
+hold on;
+plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],kap_vort_1*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'k--');
+plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],kap_vort_2*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'r--');
+plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],kap_pca*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'k-');
+hold off
+colormap(cmocean('amp'));
+colorbar;
+title('Modified IPT/TWA curl relationship');
+
+
+
+EKE_thresh = [1e-4:1e-4:0.1]; 
+corr_loEKE = 0*EKE_thresh;
+corr_hiEKE = 0*EKE_thresh;
+pval_loEKE = 0*EKE_thresh;
+pval_hiEKE = 0*EKE_thresh;
+kap1_hiEKE = 0*EKE_thresh;
+kap2_hiEKE = 0*EKE_thresh;
+for n=1:length(EKE_thresh)
+  denom = diff_curl_twa(:);
+  numer = -(gg(2)/f0^2) * IPT_eddy(:);
+  idx_lo = find(EKE_zavg<EKE_thresh(n));
+  idx_hi = find(EKE_zavg>=EKE_thresh(n));
+  if (isempty(idx_lo) || isempty(idx_hi))
+    continue;
+  end
+  [r,p] = corr(numer(idx_lo),denom(idx_lo));
+  corr_loEKE(n) = r;
+  pval_loEKE(n) = p;
+  [r,p] = corr(numer(idx_hi),denom(idx_hi));
+  corr_hiEKE(n) = r;
+  pval_hiEKE(n) = p;
+  kap1_hiEKE(n) = 1 / (numer(idx_hi) \ denom(idx_hi));
+  kap2_hiEKE(n) = denom(idx_hi) \ numer(idx_hi);
+end
+
+
+
+figure(fignum);
+fignum = fignum+1;
+plot(EKE_thresh,corr_loEKE)
+hold on
+plot(EKE_thresh,corr_hiEKE)
+hold off;
+
+figure(fignum);
+fignum = fignum+1;
+plot(EKE_thresh,kap1_hiEKE)
+hold on
+plot(EKE_thresh,kap2_hiEKE)
+hold off;
+
+figure(fignum);
+fignum = fignum+1;
+pcolor(XX_h,YY_h,EKE_zavg);
+shading interp
+colormap(cmocean('amp'));
+colorbar
+hold on
+contour(XX_h,YY_h,EKE_zavg,[median(EKE_zavg(:)) median(EKE_zavg(:))],'EdgeColor','k')
+hold off
+colormap(cmocean('amp',20));
+% caxis([0 0.1])
+
+
+logEKE_min = -3.5;
+logEKE_max = -1;
+dlogEKE = 0.05;
+logEKE_band = logEKE_min:dlogEKE:logEKE_max;
+kap1_band = NaN*logEKE_band;
+kap2_band = NaN*logEKE_band;
+for n=1:length(logEKE_band)
+  denom = diff_curl_twa(:);
+  numer = -(gg(2)/f0^2) * IPT_eddy(:);
+  idx_band = find((log10(EKE_zavg)>=logEKE_band(n)-dlogEKE/2) & (log10(EKE_zavg)<logEKE_band(n)+dlogEKE/2));
+  if (isempty(idx_band))
+    continue;
+  end
+  [r,p] = corr(numer(idx_band),denom(idx_band));
+  kap1_band(n) = 1 / (numer(idx_band) \ denom(idx_band));
+  kap2_band(n) = denom(idx_band) \ numer(idx_band);  
+end
+
+figure(fignum);
+fignum = fignum+1;
+plot(10.^logEKE_band,kap1_band);
+hold on;
+plot(10.^logEKE_band,kap2_band);
+hold off;
+
+
+iidx = find(xx_h>1000*m1km);
+% iidx = find(xx_h>1000*m1km & xx_h<2000*m1km);
+% iidx = 1:Nx;
+jidx = find(yy_h>400*m1km & yy_h < Ly-400*m1km);
+denom = diff_curl_twa(iidx,jidx,:);
+numer = -(gg(2)/f0^2) * IPT_eddy(iidx,jidx,:);
+% denom(abs(numer)<1e-12) = sign(denom(abs(numer)<1e-12))*1e-12;
+kap_geog_1 = 1/ (numer(:) \ denom(:))
+kap_geog_2 = (denom(:) \ numer(:))
 figure(fignum);
 fignum = fignum+1;
 scatter(denom(:),numer(:));
-% kap_vort_1 = diff_curl_twa(:) \ (-(gg(2)/f0^2) * IPT_eddy(:));
-% kap_vort_2 = 1 / ((-(gg(2)/f0^2) * IPT_eddy(:)) \ diff_curl_twa(:));
 hold on;
-% plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],kap_vort_1*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'k--');
-% plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],kap_vort_2*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'r--');
-% plot([min(diff_curl_twa(:)) max(diff_curl_twa(:))],mean([kap_vort_1 kap_vort_2])*[min(diff_curl_twa(:)) max(diff_curl_twa(:))],'r--');
+plot([min(denom(:)) max(denom(:))],nu_1*[min(denom(:)) max(denom(:))],'k--');
+plot([min(denom(:)) max(denom(:))],nu_2*[min(denom(:)) max(denom(:))],'k--');
 hold off;
-shading interp
-colorbar;
-colormap redblue;
-title('IFS/TWA relationship');
+corr(denom(:),numer(:))
+mean([kap_geog_1 kap_geog_2])
 
-tau_vals = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
-kap_vals = [195 326 367 410 468 509 627];
-figure(fignum);
-fignum = fignum+1;
-plot(tau_vals.^.5,kap_vals);
-title('Transient eddy diffusivity vs. wind');
+
+% tau_vals = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
+% kap_vals = [195 326 367 410 468 509 627];
+% figure(fignum);
+% fignum = fignum+1;
+% plot(tau_vals.^.5,kap_vals);
+% title('Transient eddy diffusivity vs. wind');
 
 
 
@@ -257,11 +385,11 @@ colormap redblue;
 caxis([-5 5]*1e-12)
 title('Divergence of geostrophic eddy vorticity flux');
 
-kidx = 2;
+kidx = 1;
 iidx = find(xx_h>1000*m1km);
 % iidx = find(xx_h>1000*m1km & xx_h<2000*m1km);
 % iidx = 1:Nx;
-jidx = find(yy_h>200*m1km & yy_h < Ly-200*m1km);
+jidx = find(yy_h>400*m1km & yy_h < Ly-400*m1km);
 numer = -div_Uzg_eddy(iidx,jidx,kidx);
 denom = del2_zetag_mean(iidx,jidx,kidx);
 % denom(abs(numer)<1e-12) = sign(denom(abs(numer)<1e-12))*1e-12;
@@ -288,17 +416,49 @@ colormap redblue;
 caxis([-3000 3000])
 title('nu estimated from divergence');
 
-iidx = find(xx_h>1000*m1km);
-jidx = find(yy_h>200*m1km & yy_h < Ly-200*m1km);
-numer = - (uzg_eddy(iidx,jidx,1).*dx_zetag_mean(iidx,jidx,1) + vzg_eddy(iidx,jidx,1).*dy_zetag_mean(iidx,jidx,1));
-denom = dx_zetag_mean(iidx,jidx,1).^2 + dy_zetag_mean(iidx,jidx,1).^2;
-nu_1 = 1/ (numer(:) \ denom(:))
-nu_2 = (denom(:) \ numer(:))
+% iidx = find(xx_h>1000*m1km);
+% jidx = find(yy_h>200*m1km & yy_h < Ly-200*m1km);
+% numer = - (uzg_eddy(iidx,jidx,1).*dx_zetag_mean(iidx,jidx,1) + vzg_eddy(iidx,jidx,1).*dy_zetag_mean(iidx,jidx,1));
+% denom = dx_zetag_mean(iidx,jidx,1).^2 + dy_zetag_mean(iidx,jidx,1).^2;
+% nu_1 = 1/ (numer(:) \ denom(:))
+% nu_2 = (denom(:) \ numer(:))
+% figure(fignum);
+% fignum = fignum+1;
+% scatter(denom(:),numer(:));
+% hold on;
+% plot([min(denom(:)) max(denom(:))],nu_1*[min(denom(:)) max(denom(:))],'k--');
+% plot([min(denom(:)) max(denom(:))],nu_2*[min(denom(:)) max(denom(:))],'k--');
+% hold off;
+
+
+%%% Another attempt, removing small EKE values
+kidx = 1;
+numer = -div_Uzg_eddy(:,:,kidx);
+denom = del2_zetag_mean(:,:,kidx);
+numer = numer(:);
+denom = denom(:);
+cond = EKE_zavg(:);
+idx = find(cond<median(cond)+0*iqr(cond));
+denom(idx) = [];
+numer(idx) = [];
+cond(idx) = [];
+nu_vort_1 = denom(:) \ numer(:)
+nu_vort_2 = 1 / (numer(:) \ denom(:))
+X = [denom,numer];  
+[coeff,score,roots] = pca(X./std(X));  
+nu_pca = std(numer)/std(denom)/coeff(1,1)
+
 figure(fignum);
 fignum = fignum+1;
-scatter(denom(:),numer(:));
+% scatter(numer(:),denom(:),10,EKE_zint(:))
+scatter(denom(:),numer(:),10,cond(:));
 hold on;
-plot([min(denom(:)) max(denom(:))],nu_1*[min(denom(:)) max(denom(:))],'k--');
-plot([min(denom(:)) max(denom(:))],nu_2*[min(denom(:)) max(denom(:))],'k--');
-hold off;
+plot([min(denom(:)) max(denom(:))],nu_vort_1*[min(denom(:)) max(denom(:))],'k--');
+plot([min(denom(:)) max(denom(:))],nu_vort_2*[min(denom(:)) max(denom(:))],'r--');
+plot([min(denom(:)) max(denom(:))],mean([nu_vort_1 nu_vort_2])*[min(denom(:)) max(denom(:))],'r--');
+plot([min(denom(:)) max(denom(:))],nu_pca*[min(denom(:)) max(denom(:))],'k-');
+hold off
+colormap(cmocean('amp'));
+colorbar;
+title('nu estimated from divergence for high EKE');
 

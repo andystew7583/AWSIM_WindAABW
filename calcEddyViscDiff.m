@@ -61,9 +61,14 @@ function [kap0,nu0] = calcEddyViscDiff (local_home_dir,run_name)
   diff_curl_twa = diff(curl_twa,1,3);
 %   curl_min = 1e-8;
 %   diff_curl_twa(abs(diff_curl_twa)<curl_min) = sign(diff_curl_twa(abs(diff_curl_twa)<curl_min))*curl_min;
-  kap_vort_1 = diff_curl_twa(:) \ (-(gg(2)/f0^2) * IPT_eddy(:));
-  kap_vort_2 = 1 / ((-(gg(2)/f0^2) * IPT_eddy(:)) \ diff_curl_twa(:));
-  kap0 = mean([kap_vort_1 kap_vort_2]);
+%   kap_vort_1 = diff_curl_twa(:) \ (-(gg(2)/f0^2) * IPT_eddy(:));
+%   kap_vort_2 = 1 / ((-(gg(2)/f0^2) * IPT_eddy(:)) \ diff_curl_twa(:));
+%   kap0 = mean([kap_vort_1 kap_vort_2]);
+  numer = -(gg(2)/f0^2)*IPT_eddy(:);
+  denom = diff_curl_twa(:);
+  X = [denom,numer];  
+  [coeff,score,roots] = pca(X./std(X));  
+  kap0 = std(numer)/std(denom)/coeff(1,1);
 
   %%% Eddy viscosity estimate
   uzg_eddy = uzg_tavg - ug_tavg.*zetag_tavg;
@@ -79,15 +84,20 @@ function [kap0,nu0] = calcEddyViscDiff (local_home_dir,run_name)
   del2_zetag_mean(:,Ny,:) = (zetag_tavg([2:Nx 1],Ny,:) - 2*zetag_tavg(1:Nx,Ny,:) + zetag_tavg([Nx 1:Nx-1],Ny,:)) / dx^2;
 
   kidx = 1;
-  iidx = find(xx_h>1000*m1km);
+%   iidx = find(xx_h>1000*m1km);
   % iidx = find(xx_h>1000*m1km & xx_h<2000*m1km);
-  % iidx = 1:Nx;
+  iidx = 1:Nx;
   jidx = find(yy_h>200*m1km & yy_h < Ly-200*m1km);
   numer = -div_Uzg_eddy(iidx,jidx,kidx);
   denom = del2_zetag_mean(iidx,jidx,kidx);
-  nu_1 = 1/ (numer(:) \ denom(:));
-  nu_2 = (denom(:) \ numer(:));
-  nu0 = mean([nu_1 nu_2]);
+  numer = numer(:);
+  denom = denom(:);
+%   nu_1 = 1/ (numer(:) \ denom(:));
+%   nu_2 = (denom(:) \ numer(:));
+%   nu0 = mean([nu_1 nu_2]);
+  X = [denom,numer];  
+  [coeff,score,roots] = pca(X./std(X));  
+  nu0 = std(numer)/std(denom)/coeff(1,1);
 
 end
 
