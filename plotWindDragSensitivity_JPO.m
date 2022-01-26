@@ -1,7 +1,8 @@
 %%%
-%%% plotWindSensitivity.m
+%%% plotWindDragSensitivity_JPO.m
 %%%
-%%% Plots sensitivity of ACC transport to wind in various experiments.
+%%% Plots sensitivity of ACC transport and eddy properties to wind and drag
+%%% for our JPO paper.
 %%%
 
 %%% Load static definitions
@@ -39,24 +40,24 @@ lin_drag = 0e-4;
 % lin_drag = 2e-4;
 topog_width = 150;
 topog_height = 1000;
-N_am = length(AABW_mean);
 N_tm = length(tau_mean);
 
 %%% Loop over runs and compute transport
-Ttot = zeros(N_am,N_tm);
-Tbt = zeros(N_am,N_tm);
-Tbc = zeros(N_am,N_tm);
-kap = zeros(N_am,N_tm);
-r_kap = zeros(N_am,N_tm);
-for n_am = 1:N_am
-  for n_tm = 1:N_tm
+Ttot = zeros(N_tm,N_Cd);
+Tbt = zeros(N_tm,N_Cd);
+Tbc = zeros(N_tm,N_Cd);
+kap = zeros(N_tm,N_Cd);
+r_kap = zeros(N_tm,N_Cd);
+
+for n_tm = 1:N_tm
+  for n_Cd = 1:N_Cd
     
-    [n_am n_tm]
+    [n_tm,n_Cd]
     %%% Simulation name
     run_name = constructRunName (is_spinup,Ny,Nlay, ...
                             tau_mean(n_tm),tau_pert,tau_freq, ...
-                            AABW_mean(n_am),AABW_pert,AABW_freq, ...
-                            quad_drag,lin_drag,topog_width,topog_height);
+                            AABW_mean,AABW_pert,AABW_freq, ...
+                            quad_drag(n_Cd),lin_drag,topog_width,topog_height);
     loadParams;
     
     %%% Read time-mean zonal flux

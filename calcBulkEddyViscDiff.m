@@ -1,9 +1,9 @@
 %%%
-%%% calcEddyViscDiff.m
+%%% calcBulkEddyViscDiff.m
 %%%
-%%% Estimates local eddy viscosity and diffusivity from time-mean model output.
+%%% Estimates bulk eddy viscosity and diffusivity from time-mean model output.
 %%%
-function [kap_map,nu_map,r_kap_map,r_nu_map,p_kap_map,p_nu_map] = calcEddyViscDiff (local_home_dir,run_name)
+function [kap_bulk,nu_bulk,r_kap_bulk,r_nu_bulk,EKE_zavg] = calcEddyViscDiff (local_home_dir,run_name)
 
   %%% Load parameters    
   loadParams;
@@ -13,7 +13,7 @@ function [kap_map,nu_map,r_kap_map,r_nu_map,p_kap_map,p_nu_map] = calcEddyViscDi
   tmax = 30.5*t1year;
   
   %%% Time-average required model output variables
-  hh_tavg = do_avg(dirpath,OUTN_H_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);  
+  hh_tavg = do_avg(dirpath,OUTN_H_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);
   MM_tavg = do_avg(dirpath,OUTN_M_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);
   hu_tavg = do_avg(dirpath,OUTN_HU_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);
   hv_tavg = do_avg(dirpath,OUTN_HV_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);
@@ -56,6 +56,13 @@ function [kap_map,nu_map,r_kap_map,r_nu_map,p_kap_map,p_nu_map] = calcEddyViscDi
   eddyforce_x = dx_husq_eddy + dy_huv_eddy;
   eddyforce_y = dx_huv_eddy + dy_hvsq_eddy;
   
+  %%% Depth-integrated EKE
+  EKE = 0.25*(husq_eddy(1:Nx,:,:)+husq_eddy([2:Nx 1],:,:)+hvsq_eddy(:,1:Ny,:)+hvsq_eddy(:,[2:Ny 1],:));
+  EKE_zint = sum(EKE,3);
+  EKE_zavg = EKE_zint ./ sum(hh_tavg,3);
+  idx_EKE = find(EKE_zavg>quantile(EKE_zavg(:),0.75));
+%   idx_EKE = find(EKE_zavg>0);
+ 
   %%% For eddy diffusivity estimate  
   f0 = mean(mean(2*Omega_z));
   IPT_eddy = (hdMdy_eddy(1:Nx,:,1)-hdMdy_eddy([Nx 1:Nx-1],:,1))/dx - (hdMdx_eddy(:,1:Ny,1)-hdMdx_eddy(:,[Ny 1:Ny-1],1))/dy;
@@ -63,67 +70,37 @@ function [kap_map,nu_map,r_kap_map,r_nu_map,p_kap_map,p_nu_map] = calcEddyViscDi
   curl_twa = (vv_twa(1:Nx,:,:)-vv_twa([Nx 1:Nx-1],:,:))/dx - (uu_twa(:,1:Ny,:)-uu_twa(:,[Ny 1:Ny-1],:))/dy;
   curl_twa(:,1,:) = 0;
   diff_curl_twa = diff(curl_twa,1,3);
-
+  
   %%% For eddy viscosity estimate
-  layidx = 1;
+  layidx = 2;
   div_Uz_eddy = (eddyforce_y(1:Nx,:,layidx)-eddyforce_y([Nx 1:Nx-1],:,layidx))/dx - (eddyforce_x(:,1:Ny,layidx)-eddyforce_x(:,[Ny 1:Ny-1],layidx))/dy;
   div_Uz_eddy = div_Uz_eddy ./ hh_q_tavg(:,:,layidx);
   div_Uz_eddy(:,1:2) = 0;
   div_Uz_eddy(:,Ny-1:Ny) = 0;
   zeta_twa = (vv_twa(1:Nx,:,layidx)-vv_twa([Nx 1:Nx-1],:,layidx))/dx - (uu_twa(:,1:Ny,layidx)-uu_twa(:,[Ny 1:Ny-1],layidx))/dy;    
   del2_zeta_twa = zeros(Nx,Ny);
-  del2_zeta_twa(:,2:Ny-1) = (zeta_twa([2:Nx 1],2:Ny-1,layidx) - 2*zeta_twa(1:Nx,2:Ny-1,layidx) + zeta_twa([Nx 1:Nx-1],2:Ny-1,layidx)) / dx^2 ...
-                    + (zeta_twa(:,3:Ny,layidx) - 2*zeta_twa(:,2:Ny-1,layidx) + zeta_twa(:,1:Ny-2,layidx)) / dy^2;
+  del2_zeta_twa(:,2:Ny-1) = (zeta_twa([2:Nx 1],2:Ny-1) - 2*zeta_twa(1:Nx,2:Ny-1) + zeta_twa([Nx 1:Nx-1],2:Ny-1)) / dx^2 ...
+                    + (zeta_twa(:,3:Ny) - 2*zeta_twa(:,2:Ny-1) + zeta_twa(:,1:Ny-2)) / dy^2;
   del2_zeta_twa(:,1:2) = 0;
   del2_zeta_twa(:,Ny-1:Ny) = 0;
+
+  %%% Compute eddy diffusivity  
+  numer = -(gg(2)/f0^2)*IPT_eddy(idx_EKE);
+  denom = diff_curl_twa(idx_EKE);
+  X = [denom,numer];  
+  [coeff,score,roots] = pca(X./std(X));  
+  kap_bulk = std(numer)/std(denom)*coeff(2,1)/coeff(1,1);
+%   kap_bulk = denom \ numer;
+  r_kap_bulk = corr(denom,numer);
   
-  %%% Loop over gridpoints and compute kappa and nu
-  denom_kap = diff_curl_twa(:);
-  numer_kap = -(gg(2)/f0^2) * IPT_eddy(:);
-  numer_nu = -div_Uz_eddy(:);
-  denom_nu = del2_zeta_twa(:);
-  corr_radius = 200*m1km;
-  kap_map = zeros(Nx,Ny);
-  r_kap_map = zeros(Nx,Ny);
-  p_kap_map = zeros(Nx,Ny);
-  nu_map = zeros(Nx,Ny);
-  r_nu_map = zeros(Nx,Ny);
-  p_nu_map = zeros(Nx,Ny);
-  for i=1:Nx
-    
-    for j=1:Ny
-
-      %%% Create modified x-matrix to account for periodicity
-      Xdiff = XX_h-XX_h(i,j);
-      idx = abs(Xdiff)>Lx/2;
-      XX_mod = XX_h;
-      XX_mod(idx) = XX_mod(idx)-Lx*sign(Xdiff(idx));
-
-      %%% Find points within specified radius
-      R = sqrt((XX_mod-XX_h(i,j)).^2 + (YY_h-YY_h(i,j)).^2);
-      idx = find(R<corr_radius);   
-
-      %%% Compute kappa 
-      X = [denom_kap(idx),numer_kap(idx)];      
-%       [coeff,score,latent,tsquared,explained,mu] = pca(X./std(X));
-%       kap_map(i,j) = std(numer_kap(idx))/std(denom_kap(idx))*coeff(2,1)/coeff(1,1); %%% PCA 
-      kap_map(i,j) = denom_kap(idx) \ numer_kap(idx); %%% Linear regression
-      [r,p] = corr(X(:,1),X(:,2));
-      r_kap_map(i,j) = r;
-      p_kap_map(i,j) = p;
-      
-      %%% Compute nu
-      X = [denom_nu(idx),numer_nu(idx)];      
-%       [coeff,score,latent,tsquared,explained,mu] = pca(X./std(X));
-%       nu_map(i,j) = std(numer_kap(idx))/std(denom_kap(idx))*coeff(2,1)/coeff(1,1); %%% PCA   
-      nu_map(i,j) = denom_nu(idx) \ numer_nu(idx); %%% Linear regression
-      [r,p] = corr(X(:,1),X(:,2));
-      r_nu_map(i,j) = r;
-      p_nu_map(i,j) = p;
-      
-    end  
-  end
+  %%% Compute eddy viscosity
+  numer = -div_Uz_eddy(idx_EKE);
+  denom = del2_zeta_twa(idx_EKE);  
+  X = [denom,numer];  
+  [coeff,score,roots] = pca(X./std(X));  
+  nu_bulk = std(numer)/std(denom)*coeff(2,1)/coeff(1,1);
+%   nu_bulk = denom \ numer;
+  r_nu_bulk = corr(denom,numer);
 
 end
-
 

@@ -24,17 +24,66 @@ Nlay = 2;
 
 %%% N.B. Batches run so far:
 %%% N=128
-%%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = [-1.5 -.75
-%%% 0 .75 1.5], quad_drag = 2e-3, lin_drag = 0e-4
-%%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = [-1.5 
-%%% 0 1.5], quad_drag = 0e-3, lin_drag = 2e-4
-%%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% quad_drag = 2e-3, lin_drag = 0e-4
+%%% spinup run, diagnostics run
+%%%
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% quad_drag = 0e-3, lin_drag = 2e-4
+%%% spinup run, diagnostics run
+%%%
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = [-1.5 -.75
+%%% .75 1.5], quad_drag = 2e-3, lin_drag = 0e-4
+%%% ???
+%%%
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = [-1.5 
+%%% 1.5], quad_drag = 0e-3, lin_drag = 2e-4
+%%% ???
+%%%
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
 %%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width
-%%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% spinup and diagnostics run
+%%%
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
 %%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width = [40 80 300 600];
-%%% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% ???
+%%%
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
 %%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width = [40 80 150 300 600], topog_height = [500 1500];
-
+%%% ???
+%%%
+%%% - tau_mean = 0.1, AABW_mean = 0, quad_drag = [.5e-3 1e-3 1.5e-3 2.5e-3
+%%% 3e-3 3.5e-3 4e-3], lin_drag = 0, topog_width = 150, topog_height = 1000
+%%% spinup run, diagnostics run
+%%%
+%%% - tau_mean = 0.1, AABW_mean = 0, quad_drag = 0 
+%%% lin_drag = [1e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4], topog_width = 150, topog_height = 1000
+%%% spinup run, diagnostics run
+%%%
+%%% - tau_mean =  [0.013 0.022 0.039 0.07 0.13 0.22], AABW_mean = 0,
+%%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width = 150, topog_height =
+%%% 1000
+%%% spinup run, diagnostics run
+%%%
+%%% - tau_mean =  [0.013 0.022 0.039 0.07 0.13 0.22], AABW_mean = 0,
+%%% quad_drag = 0e-3, lin_drag = 2e-4, topog_width = 150, topog_height =
+%%% 1000
+%%% spinup running
+%%%
+%%% - tau_mean =  [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.13 0.17 0.22 0.3], AABW_mean = 0,
+%%% quad_drag = [.5e-3 1e-3 1.5e-3 2.5e-3 3e-3 3.5e-3 4e-3], lin_drag = 0e-4, topog_width = 150, topog_height =
+%%% 1000
+%%% spinup running
+%%%
+%%% - tau_mean =  [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.13 0.17 0.22 0.3], AABW_mean = 0,
+%%% quad_drag = 0, lin_drag = [1e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4], topog_width = 150, topog_height =
+%%% 1000
+%%% spinup running
+%%%
+%%% N = 256
+%%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
+%%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width = 150, topog_height = 1000
+%%% spinup run, diagnostics run
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,9 +102,12 @@ Nlay = 2;
 
 %%% Perturbation values
 % tau_mean = [0.03 0.05 0.1 0.17 0.3];
-tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
+% tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 % tau_mean = [0.01 0.017 0.03 0.05 0.1];
 % tau_mean = [0.01 0.017];
+% tau_mean = 0.1;
+% tau_mean = [0.013 0.022 0.039 0.07 0.13 0.22];
+tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.13 0.17 0.22 0.3];
 tau_pert = 0;
 tau_freq = 0;
 % AABW_mean = [-1.5 1.5];
@@ -65,12 +117,17 @@ tau_freq = 0;
 AABW_mean = 0;
 AABW_pert = 0;
 AABW_freq = 0;
-quad_drag = 2e-3;
-lin_drag = 0e-4;
+% quad_drag = 2e-3;
+quad_drag = 0e-3;
+% quad_drag = [.5e-3 1e-3 1.5e-3 2.5e-3 3e-3 3.5e-3 4e-3];
+% lin_drag = 0e-4;  
+lin_drag = [1e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4];
 % quad_drag = 0e-3;
 % lin_drag = 2e-4;
-topog_width = [40 80 150 300 600];
-topog_height = [500 1500];
+topog_width = 150;
+% topog_width = [40 80 150 300 600];
+topog_height = 1000;
+% topog_height = [500 1500];
 
 %%% Wind perturbation batch
 % tau_mean = [0 0.05 0.1 0.15 0.2];

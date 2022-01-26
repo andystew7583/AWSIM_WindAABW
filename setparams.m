@@ -79,8 +79,11 @@ function setparams (local_home_dir,run_name, ...
     geff = [g .5e-2 .2e-2];        
   end
   h0 = 0;                       %%% Salmon layer thickness
-%   Xb = 1000*m1km;               %%% Zonal position of topography  
-  Xb = 1600*m1km;               %%% Zonal position of topography  
+  if ((topog_width==150) && (topog_height==1000))
+    Xb = 1000*m1km;               %%% Zonal position of topography  
+  else
+    Xb = 1600*m1km;               %%% Zonal position of topography  
+  end
   Wb = topog_width*m1km;                %%% Zonal width of topography  
   Hb = topog_height;                    %%% Height of topography  
   H = 4000;                     %%% Ocean depth  
