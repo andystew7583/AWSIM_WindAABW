@@ -95,6 +95,24 @@ fignum = fignum + 1;
 contourf(XX_h,YY_h,MM_tavg(:,:,1),30);
 colorbar;
 
+figure(fignum)
+fignum = fignum + 1;
+pcolor(XX_h,YY_h,sum(hdMdx_eddy.*uu_twa+hdMdy_eddy.*vv_twa,3));
+shading interp;
+colorbar;
+colormap redblue;
+caxis([-3 3]*1e-3);
+
+figure(fignum)
+fignum = fignum + 1;
+pcolor(XX_h,YY_h,sum(eddyforce_x.*uu_twa+eddyforce_y.*vv_twa,3));
+shading interp;
+colorbar;
+colormap redblue;
+caxis([-3 3]*1e-3);
+
+
+
 
 MM_surf = MM_tavg(:,:,1);
 MM_cntr = median(MM_surf(:));

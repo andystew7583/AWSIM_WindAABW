@@ -50,9 +50,12 @@ function setparams (local_home_dir,run_name, ...
   use_cluster = true;
   use_intel = false;
   use_pbs = use_cluster;
-  uname = 'astewart';
-  cluster_addr = 'caolila.atmos.ucla.edu';
-  cluster_home_dir = '/data2/astewart/AWSIM_WindAABW/runs';
+%   uname = 'astewart';
+  uname = 'andrewst';
+%   cluster_addr = 'caolila.atmos.ucla.edu';
+  cluster_addr = 'hoffman2.idre.ucla.edu';
+%   cluster_home_dir = '/data2/astewart/AWSIM_WindAABW/runs';
+  cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
   
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%

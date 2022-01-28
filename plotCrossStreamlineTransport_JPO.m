@@ -128,19 +128,28 @@ for n_tm=1:length(tau_mean)
   curl_tau(:,1) = 0;
   curl_hgradM_eddy = (hdMdy_eddy(1:Nx,:,1)-hdMdy_eddy([Nx 1:Nx-1],:,1))/dx - (hdMdx_eddy(:,1:Ny,1)-hdMdx_eddy(:,[Ny 1:Ny-1],1))/dy;
   curl_hgradM_eddy(:,1) = 0;
+  curl_hgradM_eddy(:,2,:) = (hdMdy_eddy(1:Nx,2,1)-hdMdy_eddy([Nx 1:Nx-1],2,1))/dx - (hdMdx_eddy(:,2,1))/dy;
   curl_hgradM_mean = (hdMdy_mean(1:Nx,:,1)-hdMdy_mean([Nx 1:Nx-1],:,1))/dx - (hdMdx_mean(:,1:Ny,1)-hdMdx_mean(:,[Ny 1:Ny-1],1))/dy;
   curl_hgradM_mean(:,1) = 0;
+  curl_hgradM_mean(:,2,:) = (hdMdy_mean(1:Nx,2,1)-hdMdy_mean([Nx 1:Nx-1],2,1))/dx - (hdMdx_mean(:,2,1))/dy;
   curl_eddyforce = (eddyforce_y(1:Nx,:,1)-eddyforce_y([Nx 1:Nx-1],:,1))/dx - (eddyforce_x(:,1:Ny,1)-eddyforce_x(:,[Ny 1:Ny-1],1))/dy;
   curl_eddyforce(:,1) = 0;
+  curl_eddyforce(:,2,:) = (eddyforce_y(1:Nx,2,1)-eddyforce_y([Nx 1:Nx-1],2,1))/dx - (eddyforce_x(:,2,1))/dy;
   curl_twa = (vv_twa(1:Nx,:,:)-vv_twa([Nx 1:Nx-1],:,:))/dx - (uu_twa(:,1:Ny,:)-uu_twa(:,[Ny 1:Ny-1],:))/dy;
   curl_twa(:,1,:) = 0;
+  curl_twa(:,2,:) = (vv_twa(1:Nx,2,:)-vv_twa([Nx 1:Nx-1],2,:))/dx - (uu_twa(:,2,:))/dy;
   diff_curl_twa = diff(curl_twa,1,3);
   diff_curl_twa_batch(:,:,n_tm) = diff_curl_twa;
 
   %%% Select streamline for calculations
-  MM_surf = MM_tavg(:,:,1);
-  MM_cntr = median(MM_surf(:));
+  MM_surf = MM_tavg(:,:,1);  
+  MM_surf(:,2:Ny,:) = 0.25*(MM_surf(1:Nx,1:Ny-1,:)+MM_surf([Nx 1:Nx-1],1:Ny-1,:)+MM_surf(1:Nx,2:Ny,:)+MM_surf([Nx 1:Nx-1],2:Ny,:));
+  MM_surf(:,1,:) = 0.5*(MM_surf(1:Nx,1,:)+MM_surf([Nx 1:Nx-1],1,:));
+  MM_cntr = median(MM_surf(:)); 
   MM_surf_batch(:,:,n_tm) = MM_surf;
+  
+  %%% TODO switch to using MM_q! think about boundary conditions for curl
+  %%% calculations!
   
   %%% Along-streamline averages
   tau_cntr_batch(n_tm) = sum(sum(curl_tau(MM_surf<MM_cntr)*dx*dy));
@@ -157,25 +166,19 @@ hgradM_refkap_cntr_batch = zeros(1,N_tm);
 hgradM_refflow_cntr_batch = zeros(1,N_tm);
 for n_tm=1:length(tau_mean)    
   
-  %%% Estimated eddy flux using kappa and mean flow from each simulation
   MM_surf = MM_surf_batch(:,:,n_tm);
   MM_cntr = median(MM_surf(:));
-  IPT_kap = kap_map_batch(:,:,n_tm).*(f0^2/gg(2)).*diff_curl_twa_batch(:,:,n_tm);
-  IPT_kap(:,1) = 0;
+  
+  %%% Estimated eddy flux using kappa and mean flow from each simulation  
+  IPT_kap = kap_map_batch(:,:,n_tm).*(f0^2/gg(2)).*diff_curl_twa_batch(:,:,n_tm);  
   hgradM_kap_cntr_batch(n_tm) = sum(sum(IPT_kap(MM_surf<MM_cntr)*dx*dy));
   
-  %%% Estimated eddy flux using reference kappa
-  MM_surf = MM_surf_batch(:,:,n_tm);
-  MM_cntr = median(MM_surf(:));
-  IPT_kap = kap_map_batch(:,:,idx_ref).*(f0^2/gg(2)).*diff_curl_twa_batch(:,:,n_tm);
-  IPT_kap(:,1) = 0;
+  %%% Estimated eddy flux using reference kappa  
+  IPT_kap = kap_map_batch(:,:,idx_ref).*(f0^2/gg(2)).*diff_curl_twa_batch(:,:,n_tm);  
   hgradM_refkap_cntr_batch(n_tm) = sum(sum(IPT_kap(MM_surf<MM_cntr)*dx*dy));
   
-  %%% Estimated eddy flux using reference mean flow
-  MM_surf = MM_surf_batch(:,:,idx_ref);
-  MM_cntr = median(MM_surf(:));
-  IPT_kap = kap_map_batch(:,:,n_tm).*(f0^2/gg(2)).*diff_curl_twa_batch(:,:,idx_ref);
-  IPT_kap(:,1) = 0;
+  %%% Estimated eddy flux using reference mean flow  
+  IPT_kap = kap_map_batch(:,:,n_tm).*(f0^2/gg(2)).*diff_curl_twa_batch(:,:,idx_ref);  
   hgradM_refflow_cntr_batch(n_tm) = sum(sum(IPT_kap(MM_surf<MM_cntr)*dx*dy));
   
 end
@@ -193,42 +196,47 @@ end
 
 fontsize = 14;
 axpos = zeros(4,4);
-axpos(1,:) = [0.07 0.56 .42 .42];
-axpos(2,:) = [0.55 0.56 .42 .42];
-axpos(3,:) = [0.07 0.06 .42 .42];
-axpos(4,:) = [0.55 0.06 .42 .42];
+axpos(1,:) = [0.08 0.56 .41 .42];
+axpos(2,:) = [0.57 0.56 .41 .42];
+axpos(3,:) = [0.08 0.06 .41 .42];
+axpos(4,:) = [0.57 0.06 .41 .42];
 axlabels = {'(a)','(b)','(c)','(d)'};
-tau_ticks = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
+tau_ticks = [5e-3 0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 rho0 = 1000;
 
-figure(6);
+figure(106);
 clf;
 set(gcf,'Position',[382   306   888   679]);
 
 subplot('Position',axpos(1,:));
-semilogx(tau_mean,-rho0*tau_cntr_batch/Lx,'o-');
+loglog(tau_mean,-rho0*tau_cntr_batch/Lx,'o-');
 hold on;
-semilogx(tau_mean,-rho0*hgradM_eddy_cntr_batch/Lx,'o-');
-semilogx(tau_mean,-rho0*eddyforce_cntr_batch/Lx,'o-');
-semilogx(tau_mean,-rho0*(hgradM_eddy_cntr_batch+eddyforce_cntr_batch)/Lx,'o-');
+loglog(tau_mean,-rho0*hgradM_eddy_cntr_batch/Lx,'o-');
+loglog(tau_mean,-rho0*eddyforce_cntr_batch/Lx,'o-');
+loglog(tau_mean,-rho0*(hgradM_eddy_cntr_batch+eddyforce_cntr_batch)/Lx,'o-');
+loglog([.1 .1],[5e-3 .3],'k:','LineWidth',2);
 hold off;
 set(gca,'XTick',tau_ticks);
+set(gca,'YTick',tau_ticks);
 set(gca,'FontSize',fontsize);
 xlabel('Wind stress maximum (N/m$^2$)','interpreter','latex');
 ylabel('Along-streamline forcing (N/m$^2$)','interpreter','latex');
 leghandle = legend('Wind stress','Eddy IFS','Eddy momentum flux convergence','Total eddy force');
 set(leghandle,'interpreter','latex','Location','NorthWest');
+grid on;
 
 colororder = get(gca,'ColorOrder');
 
 subplot('Position',axpos(2,:));
-semilogx(tau_mean,-rho0*hgradM_eddy_cntr_batch/Lx,'o-','Color',colororder(5,:));
+loglog(tau_mean,-rho0*hgradM_eddy_cntr_batch/Lx,'o-','Color',colororder(5,:));
 hold on;
-% semilogx(tau_mean,rho0*hgradM_kap_cntr_batch,'o-');
-semilogx(tau_mean,rho0*hgradM_refkap_cntr_batch/Lx,'o-','Color',colororder(6,:));
-semilogx(tau_mean,rho0*hgradM_refflow_cntr_batch/Lx,'o-','Color',colororder(7,:));
+% semilogx(tau_mean,rho0*hgradM_kap_cntr_batch/Lx,'o-');
+loglog(tau_mean,rho0*hgradM_refkap_cntr_batch/Lx,'o-','Color',colororder(6,:));
+loglog(tau_mean,rho0*hgradM_refflow_cntr_batch/Lx,'o-','Color',colororder(7,:));
+loglog([.1 .1],[5e-3 .3],'k:','LineWidth',2);
 hold off;
 set(gca,'XTick',tau_ticks);
+set(gca,'YTick',tau_ticks);
 set(gca,'FontSize',fontsize);
 xlabel('Wind stress maximum (N/m$^2$)','interpreter','latex');
 %   'Eddy IFS, reconstructed from $\kappa$ and $\overline{\mathbf{u}}$', ...
@@ -236,25 +244,36 @@ leghandle = legend('Eddy IFS, diagnosed', ...
   'Reconstructed eddy IFS, $\kappa = \kappa_{\mathrm{ref}}$', ...
   'Reconstructed eddy IFS, $\overline{\mathbf{u}} = \overline{\mathbf{u}}_{\mathrm{ref}}$');
 set(leghandle,'interpreter','latex','Location','NorthWest');
+grid on;
 
 subplot('Position',axpos(3,:));
 scatter(-rho0*hgradM_eddy_cntr_batch/Lx,rho0*hgradM_refkap_cntr_batch/Lx);
 hold on;
-plot([0 0.2],[0 0.2],'k--');
+plot([1e-3 0.2],[1e-3 0.2],'k--');
 hold off;
-axis([0 0.2 0 0.2]);
 set(gca,'FontSize',fontsize);
 xlabel('Eddy IFS, diagnosed','interpreter','latex');
-ylabel('Reconstructed eddy IFS, $\kappa = \kappa_{\mathrm{ref}}$','interpreter','latex');
+ylabel('Reconstructed eddy IFS, $\kappa = \kappa_{\mathrm{ref}}$ (N/m$^2$)','interpreter','latex');
 box on;
+grid on;
+set(gca,'XTick',tau_ticks);
+set(gca,'YTick',tau_ticks);
+set(gca,'XScale','log');
+set(gca,'YScale','log');
+axis([4e-3 0.2 4e-3 0.2]);
 
 subplot('Position',axpos(4,:));
 scatter(-rho0*hgradM_eddy_cntr_batch/Lx,rho0*hgradM_refflow_cntr_batch/Lx);
 hold on;
-plot([0 0.2],[0 0.2],'k--');
+plot([0.001 0.2],[0.001 0.2],'k--');
 hold off;
-axis([0 0.2 0 0.2]);
 set(gca,'FontSize',fontsize);
 xlabel('Eddy IFS, diagnosed','interpreter','latex');
-ylabel('Reconstructed eddy IFS, $\overline{\mathbf{u}} = \overline{\mathbf{u}}_{\mathrm{ref}}$','interpreter','latex');
+ylabel('Reconstructed eddy IFS, $\overline{\mathbf{u}} = \overline{\mathbf{u}}_{\mathrm{ref}}$ (N/m$^2$)','interpreter','latex');
 box on;
+grid on;
+set(gca,'XTick',tau_ticks);
+set(gca,'YTick',tau_ticks);
+set(gca,'XScale','log');
+set(gca,'YScale','log');
+axis([4e-3 0.2 4e-3 0.2]);

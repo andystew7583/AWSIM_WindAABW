@@ -85,7 +85,7 @@ set(gca,'FontSize',fontsize);
 title('Transient eddy diffusivity, \kappa (m^2/s)');
 
 subplot('Position',axpos(3,:));
-pcolor(XX_h/m1km,YY_h/m1km,r_kap_map.^2);
+pcolor(XX_h/m1km,YY_h/m1km,100*r_kap_map.^2);
 shading interp;
 hold on;
 [C,h]=contour(XX_h/m1km,YY_h/m1km,-hhb,[500 1500 2500 3250 3500 3750],'EdgeColor',[.5 .5 .5],'LineWidth',1);
@@ -94,8 +94,8 @@ hold off;
 xlabel('Longitude $x$ (km)','interpreter','latex');
 ylabel('Latitude $y$ (km)','interpreter','latex');
 colorbar;
-caxis([0 1]);
+caxis([0 100]);
 colormap(gca,cmocean('amp'));
 set(gca,'FontSize',fontsize);
-title('Correlation coefficient');
+title('Variance explained by \kappa (%)');
 
