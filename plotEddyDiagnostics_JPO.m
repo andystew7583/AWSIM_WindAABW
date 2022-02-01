@@ -38,11 +38,12 @@ load(fullfile(prod_dir,['kap_nu_',run_name,'.mat']));
 
 %%% Plotting options
 fontsize = 14;
-axpos = zeros(4,4);
+axpos = zeros(3,4);
 axpos(1,:) = [0.11 0.71 .85 .26];
 axpos(2,:) = [0.11 0.38 .85 .26];
 axpos(3,:) = [0.11 0.05 .85 .26];
-axlabels = {'(a)','(b)','(c)','(d)'};
+axlabels = {'(a)','(b)','(c)'};
+lab_size = [0.05 0.03];
 tau_ticks = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 rho0 = 1000;
 
@@ -97,5 +98,11 @@ colorbar;
 caxis([0 100]);
 colormap(gca,cmocean('amp'));
 set(gca,'FontSize',fontsize);
-title('Variance explained by \kappa (%)');
+title('Variance explained by \kappa fit (%)');
+
+
+%%% Add axis labels
+for cntr = 1:size(axpos,1)
+  annotation('textbox',[axpos(cntr,1)-0.1 axpos(cntr,2)-0.04 lab_size],'String',axlabels{cntr},'interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
+end
 

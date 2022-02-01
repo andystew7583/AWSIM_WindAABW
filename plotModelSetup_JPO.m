@@ -42,6 +42,10 @@ vv = readOutputFile(data_file,Nx,Ny);
 data_file = fullfile(dirpath,[OUTN_H,num2str(layer-1),'_n=',num2str(n),'.dat']);
 hh = readOutputFile(data_file,Nx,Ny);      
 
+%%% Load h
+data_file = fullfile(dirpath,[OUTN_PI,'_n=',num2str(n),'.dat']);
+pp = readOutputFile(data_file,Nx,Ny);      
+
 %%% Calculate the relative vorticity
 zeta = zeros(Nx+1,Ny+1);            
 zeta(2:Nx,2:Ny) = (uu(1:Nx-1,1:Ny-1)-uu(1:Nx-1,2:Ny)) / dy + (vv(2:Nx,2:Ny)-vv(1:Nx-1,2:Ny)) / dx;                                         
@@ -117,7 +121,8 @@ cntr = cntr + 1;
 ax = axes('position',ax_pos(cntr,:));  
 plot(xx_h/1000,-hhb(:,Ny/2),'Color',[0.41,0.19,0.07],'LineWidth',1.5);
 hold on;
-% plot(xx_h/1000,-eta(:,Ny/2),'b-','LineWidth',1);
+plot(xx_h/1000,mean(hh(:,:,1),2),'b-','LineWidth',1);
+% plot(xx_h/1000,mean(pp(:,:),2)/gg(1)*1000,'b-','LineWidth',1);
 hold off;
 % set(gca,'XLim',[-Lx/2/m1km Lx/2/m1km]);
 axis([0 Lx/m1km 0 4000]);

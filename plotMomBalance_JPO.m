@@ -122,6 +122,7 @@ curl_hgradM_tavg(:,2,:) = (hdMdy_tavg(1:Nx,2,:)-hdMdy_tavg([Nx 1:Nx-1],2,:))/dx 
 BPT = sum(curl_hgradM_tavg,3);
 
 %%% For reconstruction of eddy fluxes
+f0 = mean(mean(2*Omega_z));
 curl_twa = (vv_twa(1:Nx,:,:)-vv_twa([Nx 1:Nx-1],:,:))/dx - (uu_twa(:,1:Ny,:)-uu_twa(:,[Ny 1:Ny-1],:))/dy;
 curl_twa(:,1,:) = 0;
 curl_twa(:,2,:) = (vv_twa(1:Nx,2,:)-vv_twa([Nx 1:Nx-1],2,:))/dx - (uu_twa(:,2,:))/dy;
@@ -186,6 +187,7 @@ axpos(5,:) = [0.57 0.18 .4 .2];
 legpos1 = [0.17 0.01 0.2 0.1];
 legpos2 = [0.67 0.01 0.2 0.1];
 axlabels = {'(a)','(b)','(c)','(d)','(e)'};
+lab_size = [0.05 0.03];
 tau_ticks = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 rho0 = 1000;
 
@@ -210,7 +212,7 @@ colorbar;
 caxis([-.25 .3]);
 colormap(gca,haxby(22));
 set(gca,'FontSize',fontsize);
-title('Mean sea surface height');
+title('Mean sea surface height (m)');
 
 colororder = get(gca,'ColorOrder');
 
@@ -288,3 +290,8 @@ grid on;
 
 leghandle = legend('Wind stress','Interfacial form stress (mean)','Interfacial form stress (eddy)','Advection (mean)','Advection (eddy)','Sum');
 set(leghandle,'Position',legpos2);
+
+%%% Add axis labels
+for cntr = 1:size(axpos,1)
+  annotation('textbox',[axpos(cntr,1)-0.05 axpos(cntr,2)-0.04 lab_size],'String',axlabels{cntr},'interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
+end
