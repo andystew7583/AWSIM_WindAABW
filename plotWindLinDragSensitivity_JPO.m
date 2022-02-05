@@ -1,8 +1,9 @@
 %%%
-%%% plotWindDragSensitivity_JPO.m
+%%% plotWindLinDragSensitivity_JPO.m
 %%%
 %%% Plots sensitivity of ACC transport and eddy properties to wind and drag
-%%% for our JPO paper.
+%%% for our JPO paper. This version of the code uses our linear drag
+%%% experiments.
 %%%
 
 %%% Load static definitions
@@ -24,10 +25,6 @@ Nlay = 2;
 tmin = 0.5*t1year;
 tmax = 30.5*t1year;
 
-%%% Index of reference simulation
-idx_ref_tm = 9;
-idx_ref_Cd = 4;
-
 %%% Parameters defining the batch of runs to plot
 % tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.1 0.13 0.17 0.22 0.3];
@@ -39,35 +36,36 @@ AABW_mean = 0;
 AABW_pert = 0;
 AABW_freq = 0;
 % quad_drag = 2e-3;
-quad_drag = [.5e-3 1e-3 1.5e-3 2e-3 2.5e-3 3e-3 3.5e-3 4e-3];
-lin_drag = 0e-4;
-% quad_drag = 0e-3;
+% quad_drag = [.5e-3 1e-3 1.5e-3 2e-3 2.5e-3 3e-3 3.5e-3 4e-3];
+% lin_drag = 0e-4;
+lin_drag = [1e-4 2e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4];
+quad_drag = 0e-3;
 % lin_drag = 2e-4;
 topog_width = 150;
 topog_height = 1000;
 N_tm = length(tau_mean);
-N_Cd = length(quad_drag);
+N_rb = length(lin_drag);
 
 %%% Loop over runs and compute transport
-Ttot = zeros(N_Cd,N_tm);
-Tbt = zeros(N_Cd,N_tm);
-Tbc = zeros(N_Cd,N_tm);
-kap = zeros(N_Cd,N_tm);
-r_kap = zeros(N_Cd,N_tm);
-SKE_tot = zeros(N_Cd,N_tm);
-EKE_tot = zeros(N_Cd,N_tm);
+Ttot = zeros(N_rb,N_tm);
+Tbt = zeros(N_rb,N_tm);
+Tbc = zeros(N_rb,N_tm);
+kap = zeros(N_rb,N_tm);
+r_kap = zeros(N_rb,N_tm);
+SKE_tot = zeros(N_rb,N_tm);
+EKE_tot = zeros(N_rb,N_tm);
 for n_tm = 1:N_tm
-  for n_Cd = 1:N_Cd
+  for n_rb = 1:N_rb
     
-    [n_tm,n_Cd]
+    [n_tm,n_rb]
     %%% Simulation name
     run_name = constructRunName (is_spinup,Ny,Nlay, ...
                             tau_mean(n_tm),tau_pert,tau_freq, ...
                             AABW_mean,AABW_pert,AABW_freq, ...
-                            quad_drag(n_Cd),lin_drag,topog_width,topog_height);
+                            quad_drag,lin_drag(n_rb),topog_width,topog_height);
     loadParams;
     
-    %%% Read time-mean zonal flux
+    %%% Read time-mean zonal flux    
     hu_tavg = do_avg(dirpath,OUTN_HU_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);
     hv_tavg = do_avg(dirpath,OUTN_HV_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);
     hh_tavg = do_avg(dirpath,OUTN_H_AVG,Nx,Ny,Nlay,n0_avg,N_avg,dt_avg,tmin,tmax,startTime);
@@ -90,25 +88,25 @@ for n_tm = 1:N_tm
     vv_sw = vv_twa_t - repmat(vv_twa_x,[Nx 1]);
     SKE_u = 0.5*sum(hh_w_tavg.*uu_sw.^2,1);
     SKE_v = 0.5*sum(hh_s_tavg.*vv_sw.^2,1);
-    SKE_tot(n_Cd,n_tm) = (sum(sum(SKE_u*dx*dy)) + sum(sum(SKE_v*dx*dy))) / sum(sum((-hhb)*dx*dy));
+    SKE_tot(n_rb,n_tm) = (sum(sum(SKE_u*dx*dy)) + sum(sum(SKE_v*dx*dy))) / sum(sum((-hhb)*dx*dy));
   
     %%% Compute transports
-    Ttot(n_Cd,n_tm) = mean(sum(sum(hu_tavg,3),2),1)*dy;
-    Tbt(n_Cd,n_tm) = mean(sum(uu_tavg(:,:,end).*(-hhb).*dy,2),1);
-    Tbc(n_Cd,n_tm) = Ttot(n_Cd,n_tm) - Tbt(n_Cd,n_tm);
+    Ttot(n_rb,n_tm) = mean(sum(sum(hu_tavg,3),2),1)*dy;
+    Tbt(n_rb,n_tm) = mean(sum(uu_tavg(:,:,end).*(-hhb).*dy,2),1);
+    Tbc(n_rb,n_tm) = Ttot(n_rb,n_tm) - Tbt(n_rb,n_tm);
     
     %%% Calculate at the ridge - yields almost identical results
 %     hhb_u = 0.5*(hhb(1:Nx,:)+hhb([Nx 1:Nx-1],:)); 
 %     idx_topog = find(hhb_u(:,Ny/2)==max(hhb_u(:,Ny/2)));
-%     Ttot(n_Cd,n_tm) = sum(sum(squeeze(hu_tavg(idx_topog,:,:)),2),1)*dy;
-%     Tbt(n_Cd,n_tm) = sum(u_tavg(idx_topog,:,end).*(-hhb(idx_topog,:)).*dy,2);
-%     Tbc(n_Cd,n_tm) = Ttot(n_Cd,n_tm) - Tbt(n_Cd,n_tm);
+%     Ttot(n_rb,n_tm) = sum(sum(squeeze(hu_tavg(idx_topog,:,:)),2),1)*dy;
+%     Tbt(n_rb,n_tm) = sum(uu_tavg(idx_topog,:,end).*(-hhb(idx_topog,:)).*dy,2);
+%     Tbc(n_rb,n_tm) = Ttot(n_rb,n_tm) - Tbt(n_rb,n_tm);
     
     %%% Compute diffusivity
     [kap_bulk,nu_bulk,r_kap_bulk,r_nu_bulk,EKE_zavg] = calcBulkEddyViscDiff(local_home_dir,run_name);
-    kap(n_Cd,n_tm) = kap_bulk;
-    r_kap(n_Cd,n_tm) = r_kap_bulk;
-    EKE_tot(n_Cd,n_tm) = sum(sum(EKE_zavg.*(-hhb)*dx*dy)) / sum(sum((-hhb)*dx*dy));
+    kap(n_rb,n_tm) = kap_bulk;
+    r_kap(n_rb,n_tm) = r_kap_bulk;
+    EKE_tot(n_rb,n_tm) = sum(sum(EKE_zavg.*(-hhb)*dx*dy)) / sum(sum((-hhb)*dx*dy));
     
   end
 end
@@ -126,13 +124,17 @@ lab_size = [0.05 0.03];
 tau_ticks = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 rho0 = 1000;
 
-defaultcolororder = get(gca,'ColorOrder');
+defaultcolororder = zeros(9,3);
+defaultcolororder(1:7,:) = get(gca,'ColorOrder');
+defaultcolororder(8,:) = [1 0 0];
+defaultcolororder(9,:) = [0 0 1];
 colororder = zeros(8,3);
-colororder(1:idx_ref_Cd-1,:) = defaultcolororder(1:idx_ref_Cd-1,:);
-colororder(idx_ref_Cd,:) = [0 0 0];
-colororder(idx_ref_Cd+1:N_Cd,:) = defaultcolororder(idx_ref_Cd:N_Cd-1,:);
+colororder(1:idx_ref_rb-1,:) = defaultcolororder(1:idx_ref_rb-1,:);
+colororder(idx_ref_rb,:) = [0 0 0];
+colororder(idx_ref_rb+1:N_rb,:) = defaultcolororder(idx_ref_rb:N_rb-1,:);
 
-figure(104);
+
+figure(107);
 clf;
 set(gcf,'Position',[382   306   500   1000]);
 
@@ -140,9 +142,9 @@ set(gcf,'Position',[382   306   500   1000]);
 
 %%% Make figure
 subplot('Position',axpos(1,:));
-for n_Cd=1:N_Cd
-  semilogx(tau_mean,Ttot(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:));
-  if (n_Cd == 1)
+for n_rb=1:N_rb
+  semilogx(tau_mean,Ttot(n_rb,:)/1e6,'o-','Color',colororder(n_rb,:));
+  if (n_rb == 1)
   hold on;
   end
 end
@@ -151,7 +153,7 @@ hold off;
 ylabel('Total transport (Sv)');
 set(gca,'XTick',tau_ticks);
 set(gca,'XLim',[0 0.3]);
-set(gca,'YLim',[0 75]);
+set(gca,'YLim',[-5 85]);
 set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
@@ -159,9 +161,9 @@ annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)',
 
 %%% Make figure
 subplot('Position',axpos(2,:));
-for n_Cd=1:N_Cd
-  semilogx(tau_mean,Tbt(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:));
-  if (n_Cd == 1)
+for n_rb=1:N_rb
+  semilogx(tau_mean,Tbt(n_rb,:)/1e6,'o-','Color',colororder(n_rb,:));
+  if (n_rb == 1)
   hold on;
   end
 end
@@ -170,12 +172,12 @@ hold off;
 ylabel('Barotropic transport (Sv)');
 set(gca,'XTick',tau_ticks);
 set(gca,'XLim',[0 0.3]);
-set(gca,'YLim',[0 75]);
+set(gca,'YLim',[-5 85]);
 set(gca,'FontSize',fontsize);
 grid on;
 legstr = {};
-for n_Cd=1:N_Cd
-  legstr = {legstr{:},['Cd=',num2str(quad_drag(n_Cd)*1000,'%.1f'),'$\times$10$^{-3}$']}; 
+for n_rb=1:N_rb
+  legstr = {legstr{:},['r$_{\mathrm{b}}$=',num2str(lin_drag(n_rb)*10000,'%.1f'),'$\times$10$^{-4}$']}; 
 end
 leghandle = legend(legstr,'Location','NorthWest');
 set(leghandle,'interpreter','latex');
@@ -183,9 +185,9 @@ annotation('textbox',[axpos(2,1)-0.105 axpos(2,2)-0.04 lab_size],'String','(b)',
 
 %%% Make figure
 subplot('Position',axpos(3,:));
-for n_Cd=1:N_Cd
-  semilogx(tau_mean,Tbc(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:));
-  if (n_Cd == 1)
+for n_rb=1:N_rb
+  semilogx(tau_mean,Tbc(n_rb,:)/1e6,'o-','Color',colororder(n_rb,:));
+  if (n_rb == 1)
   hold on;
   end
 end
@@ -194,7 +196,7 @@ xlabel('Wind Stress (N/m^2)');
 ylabel('Baroclinic transport (Sv)');
 set(gca,'XTick',tau_ticks);
 set(gca,'XLim',[0 0.3]);
-set(gca,'YLim',[0 75]);
+set(gca,'YLim',[-5 85]);
 set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(3,1)-0.105 axpos(3,2)-0.04 lab_size],'String','(c)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
@@ -275,7 +277,7 @@ annotation('textbox',[axpos(3,1)-0.105 axpos(3,2)-0.04 lab_size],'String','(c)',
 
 
 
-figure(105);
+figure(108);
 clf;
 set(gcf,'Position',[1082   306   500   1000]);
 
@@ -286,10 +288,10 @@ set(gcf,'Position',[1082   306   500   1000]);
 
 %%% Make figure
 subplot('Position',axpos(1,:));
-for n_Cd=1:N_Cd
-  loglog(tau_mean,kap(n_Cd,:),'o-','Color',colororder(n_Cd,:));
+for n_rb=1:N_rb
+  loglog(tau_mean,kap(n_rb,:),'o-','Color',colororder(n_rb,:));fig
 %   plot(tau_mean,kap(n_Cd,:),'o-');
-  if (n_Cd == 1)
+  if (n_rb == 1)
   hold on;
   end
 end
@@ -310,14 +312,14 @@ text(0.07,1000,'$\tau^{0.4}$','interpreter','latex','FontSize',fontsize);
 
 %%% Make figure
 subplot('Position',axpos(2,:));
-for n_Cd=1:N_Cd
-  loglog(tau_mean,EKE_tot(n_Cd,:),'o-','Color',colororder(n_Cd,:));
-  if (n_Cd == 1)
+for n_rb=1:N_rb
+  loglog(tau_mean,EKE_tot(n_rb,:),'o-','Color',colororder(n_rb,:));
+  if (n_rb == 1)
   hold on;
   end
 end
 loglog(tau_mean(9:12),1.2e-3*(tau_mean(9:12)/0.1).^.6,'k--');
-loglog(tau_mean(7:10),8e-3*(tau_mean(7:10)/0.1).^.9,'k--');
+loglog(tau_mean(7:10),8e-3*(tau_mean(7:10)/0.1).^1,'k--');
 hold off;
 % xlabel('Wind Stress (N/m^2)');
 ylabel('Transient eddy kinetic energy (m^2/s^2)');
@@ -326,21 +328,21 @@ set(gca,'XLim',[0 0.3]);
 set(gca,'FontSize',fontsize);
 grid on;
 legstr = {};
-for n_Cd=1:N_Cd
-  legstr = {legstr{:},['Cd=',num2str(quad_drag(n_Cd)*1000,'%.1f'),'$\times$10$^{-3}$']}; 
+for n_rb=1:N_rb
+  legstr = {legstr{:},['r$_{\mathrm{b}}$=',num2str(lin_drag(n_rb)*10000,'%.1f'),'$\times$10$^{-4}$']};  
 end
 leghandle = legend(legstr,'Location','NorthWest');
 set(leghandle,'interpreter','latex');
 annotation('textbox',[axpos(2,1)-0.105 axpos(2,2)-0.04 lab_size],'String','(b)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
 text(0.14,1.2e-3,'$\tau^{0.6}$','interpreter','latex','FontSize',fontsize);
-text(0.07,8e-3,'$\tau^{0.9}$','interpreter','latex','FontSize',fontsize);
+text(0.07,8e-3,'$\tau^{1}$','interpreter','latex','FontSize',fontsize);
 
 %%% Make figure
 subplot('Position',axpos(3,:));
-for n_Cd=1:N_Cd
+for n_rb=1:N_rb
 %   semilogx(tau_mean,SKE_tot(n_Cd,:),'o-');
-  loglog(tau_mean,SKE_tot(n_Cd,:),'o-','Color',colororder(n_Cd,:));
-  if (n_Cd == 1)
+  loglog(tau_mean,SKE_tot(n_rb,:),'o-','Color',colororder(n_rb,:));
+  if (n_rb == 1)
   hold on;
   end
 end

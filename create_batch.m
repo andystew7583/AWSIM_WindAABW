@@ -18,13 +18,13 @@ cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
 %%% Spinup simulations are long and produce no diagnostic, diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
 %%% period
-is_spinup = false;
+is_spinup = true;
 
 %%% Set true to extend a previous run
 extend_run = false;
 
 %%% Grid resolution 
-Ny = 128;
+Ny = 256;
 Nlay = 2;
 
 %%% N.B. Batches run so far:
@@ -73,17 +73,17 @@ Nlay = 2;
 %%% - tau_mean =  [0.013 0.022 0.039 0.07 0.13 0.22], AABW_mean = 0,
 %%% quad_drag = 0e-3, lin_drag = 2e-4, topog_width = 150, topog_height =
 %%% 1000
-%%% spinup running
+%%% spinup running, diagnostics running on hoffman
 %%%
 %%% - tau_mean =  [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.13 0.17 0.22 0.3], AABW_mean = 0,
 %%% quad_drag = [.5e-3 1e-3 1.5e-3 2.5e-3 3e-3 3.5e-3 4e-3], lin_drag = 0e-4, topog_width = 150, topog_height =
 %%% 1000
-%%% spinup running, diagnostics running
+%%% spinup run, diagnostics run
 %%%
 %%% - tau_mean =  [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.13 0.17 0.22 0.3], AABW_mean = 0,
 %%% quad_drag = 0, lin_drag = [1e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4], topog_width = 150, topog_height =
 %%% 1000
-%%% spinup running
+%%% spinup runn, diagnostics running on hoffman
 %%%
 %%% N = 256
 %%% - tau_mean = [0.01 0.017 0.03 0.05 0.1 0.17 0.3], AABW_mean = 0,
@@ -93,12 +93,17 @@ Nlay = 2;
 %%% - tau_mean =  [0.013 0.022 0.039 0.07 0.13 0.22], AABW_mean = 0,
 %%% quad_drag = 2e-3, lin_drag = 0e-4, topog_width = 150, topog_height =
 %%% 1000
-%%% spinup running
+%%% spinup running on hoffman
 %%%
 %%% - tau_mean =  [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.1 0.13 0.17 0.22 0.3], AABW_mean = 0,
 %%% quad_drag = [.5e-3 1e-3 1.5e-3 2.5e-3 3e-3 3.5e-3 4e-3], lin_drag = 0e-4, topog_width = 150, topog_height =
 %%% 1000
-%%% spinup running
+%%% spinup running on hoffman
+%%%
+%%% - tau_mean =  [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.1 0.13 0.17 0.22 0.3], AABW_mean = 0,
+%%% lin_drag = [1e-4 2e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4], lin_drag = 0e-4, topog_width = 150, topog_height =
+%%% 1000
+%%% spinup running on hoffman
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Parameter selection %%%
@@ -121,8 +126,8 @@ Nlay = 2;
 % tau_mean = [0.01 0.017];
 % tau_mean = 0.1;
 % tau_mean = [0.013 0.022 0.039 0.07 0.13 0.22];
-tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.13 0.17 0.22 0.3];
-% tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.1 0.13 0.17 0.22 0.3];
+% tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.13 0.17 0.22 0.3];
+tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.1 0.13 0.17 0.22 0.3];
 tau_pert = 0;
 tau_freq = 0;
 % AABW_mean = [-1.5 1.5];
@@ -133,10 +138,11 @@ AABW_mean = 0;
 AABW_pert = 0;
 AABW_freq = 0;
 % quad_drag = 2e-3;
-% quad_drag = 0e-3;
-quad_drag = [.5e-3 1e-3 1.5e-3 2.5e-3 3e-3 3.5e-3 4e-3];
-lin_drag = 0e-4;  
+quad_drag = 0e-3;
+% quad_drag = [.5e-3 1e-3 1.5e-3 2.5e-3 3e-3 3.5e-3 4e-3];
+% lin_drag = 0e-4;  
 % lin_drag = [1e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4];
+lin_drag = [1e-4 2e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4];
 % quad_drag = 0e-3;
 % lin_drag = 2e-4;
 topog_width = 150;
