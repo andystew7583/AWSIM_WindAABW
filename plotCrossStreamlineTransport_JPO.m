@@ -31,7 +31,7 @@ Ny = 128;
 Nx = Ny*2;
 Nlay = 2;
 is_spinup = false;
-tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.1 0.13 0.17 0.22 0.3];
+tau_mean = [0.01 0.013 0.017 0.022 0.03 0.039 0.05 0.07 0.1 0.13 0.17 0.22 0.3 0.39 0.5];
 tau_pert = 0;
 tau_freq = 0;
 AABW_mean = 0;
@@ -212,7 +212,7 @@ axpos(3,:) = [0.075 0.06 .41 .42];
 axpos(4,:) = [0.575 0.06 .41 .42];
 axlabels = {'(a)','(b)','(c)','(d)'};
 lab_size = [0.05 0.03];
-tau_ticks = [5e-3 0.01 0.017 0.03 0.05 0.1 0.17 0.3];
+tau_ticks = [5e-3 0.01 0.017 0.03 0.05 0.1 0.17 0.3 0.5];
 rho0 = 1000;
 
 figure(106);
@@ -225,8 +225,9 @@ hold on;
 loglog(tau_mean,-rho0*hgradM_eddy_cntr_batch(idx_ref_Cd,:)/Lx,'o-');
 loglog(tau_mean,-rho0*eddyforce_cntr_batch(idx_ref_Cd,:)/Lx,'o-');
 loglog(tau_mean,-rho0*(hgradM_eddy_cntr_batch(idx_ref_Cd,:)+eddyforce_cntr_batch(idx_ref_Cd,:))/Lx,'o-');
-loglog([.1 .1],[5e-3 .3],'k:','LineWidth',2);
+loglog([.1 .1],[5e-3 .5],'k:','LineWidth',2);
 hold off;
+axis([0.01 .5 5e-3 .5]);
 set(gca,'XTick',tau_ticks);
 set(gca,'YTick',tau_ticks);
 set(gca,'FontSize',fontsize);
@@ -244,8 +245,9 @@ hold on;
 % semilogx(tau_mean,rho0*hgradM_kap_cntr_batch(idx_ref_Cd,:)/Lx,'o-');
 loglog(tau_mean,rho0*hgradM_refkap_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(6,:));
 loglog(tau_mean,rho0*hgradM_refflow_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(7,:));
-loglog([.1 .1],[5e-3 .3],'k:','LineWidth',2);
+loglog([.1 .1],[5e-3 .5],'k:','LineWidth',2);
 hold off;
+axis([0.01 .5 5e-3 .5]);
 set(gca,'XTick',tau_ticks);
 set(gca,'YTick',tau_ticks);
 set(gca,'FontSize',fontsize);
@@ -266,7 +268,7 @@ colororder(1:idx_ref_Cd-1,:) = defaultcolororder(1:idx_ref_Cd-1,:);
 colororder(idx_ref_Cd,:) = [0 0 0];
 colororder(idx_ref_Cd+1:N_Cd,:) = defaultcolororder(idx_ref_Cd:N_Cd-1,:);
 
-lrmse = sqrt(mean(log10(-rho0*hgradM_eddy_cntr_batch(:)/Lx)-log10(rho0*hgradM_refkap_cntr_batch(:)/Lx)).^2);
+lrmse = sqrt(mean((log10(-rho0*hgradM_eddy_cntr_batch(:)/Lx)-log10(rho0*hgradM_refkap_cntr_batch(:)/Lx)).^2));
 subplot('Position',axpos(3,:));
 for n_Cd = 1:N_Cd
   scatter(-rho0*hgradM_eddy_cntr_batch(n_Cd,:)/Lx,rho0*hgradM_refkap_cntr_batch(n_Cd,:)/Lx,markersize,'filled',markershapes{n_Cd},'MarkerEdgeColor',colororder(n_Cd,:),'MarkerFaceColor',colororder(n_Cd,:));
@@ -274,7 +276,7 @@ for n_Cd = 1:N_Cd
     hold on;
   end
 end
-plot([1e-3 0.2],[1e-3 0.2],'k--');
+plot([1e-3 0.3],[1e-3 0.3],'k--');
 hold off;
 set(gca,'FontSize',fontsize);
 xlabel('Eddy IFS, diagnosed (N/m$^2$)','interpreter','latex');
@@ -285,8 +287,8 @@ set(gca,'XTick',tau_ticks);
 set(gca,'YTick',tau_ticks);
 set(gca,'XScale','log');
 set(gca,'YScale','log');
-axis([4e-3 0.2 4e-3 0.2]);
-text(0.07,0.005,['lRMSE = ',num2str(lrmse,'%.2f')],'FontSize',fontsize);
+axis([4e-3 0.3 4e-3 0.3]);
+text(0.07,0.005,['lRMSE = ',num2str(lrmse,'%.3f')],'FontSize',fontsize);
 
 legstr = {};
 for n_Cd=1:N_Cd
@@ -295,7 +297,7 @@ end
 leghandle = legend(legstr,'Location','NorthWest');
 set(leghandle,'interpreter','latex');
 
-lrmse = sqrt(mean(log10(-rho0*hgradM_eddy_cntr_batch(:)/Lx)-log10(rho0*hgradM_refflow_cntr_batch(:)/Lx)).^2);
+lrmse = sqrt(mean((log10(-rho0*hgradM_eddy_cntr_batch(:)/Lx)-log10(rho0*hgradM_refflow_cntr_batch(:)/Lx)).^2));
 subplot('Position',axpos(4,:));
 for n_Cd = 1:N_Cd
   scatter(-rho0*hgradM_eddy_cntr_batch(n_Cd,:)/Lx,rho0*hgradM_refflow_cntr_batch(n_Cd,:)/Lx,markersize,'filled',markershapes{n_Cd},'MarkerEdgeColor',colororder(n_Cd,:),'MarkerFaceColor',colororder(n_Cd,:));
@@ -303,7 +305,7 @@ for n_Cd = 1:N_Cd
     hold on;
   end
 end
-plot([0.001 0.2],[0.001 0.2],'k--');
+plot([0.001 0.3],[0.001 0.3],'k--');
 hold off;
 set(gca,'FontSize',fontsize);
 xlabel('Eddy IFS, diagnosed (N/m$^2$)','interpreter','latex');
@@ -314,8 +316,8 @@ set(gca,'XTick',tau_ticks);
 set(gca,'YTick',tau_ticks);
 set(gca,'XScale','log');
 set(gca,'YScale','log');
-axis([4e-3 0.2 4e-3 0.2]);
-text(0.07,0.005,['lRMSE = ',num2str(lrmse,'%.2f')],'FontSize',fontsize);
+axis([4e-3 0.3 4e-3 0.3]);
+text(0.07,0.005,['lRMSE = ',num2str(lrmse,'%.3f')],'FontSize',fontsize);
 
 
 %%% Add axis labels
