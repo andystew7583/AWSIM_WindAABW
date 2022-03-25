@@ -17,7 +17,7 @@ local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM_WindAABW/runs';
 is_spinup = false;
 
 %%% Grid resolution 
-Ny = 128;
+Ny = 256;
 Nlay = 2;
 
 %%% Averaging period
@@ -132,6 +132,9 @@ colororder(1:idx_ref_Cd-1,:) = defaultcolororder(1:idx_ref_Cd-1,:);
 colororder(idx_ref_Cd,:) = [0 0 0];
 colororder(idx_ref_Cd+1:N_Cd,:) = defaultcolororder(idx_ref_Cd:N_Cd-1,:);
 
+markersize = 10;
+markershapes = {'>','o','*','<','v','d','^','s','x','+'};
+
 figure(104);
 clf;
 set(gcf,'Position',[382   306   500   1000]);
@@ -141,7 +144,7 @@ set(gcf,'Position',[382   306   500   1000]);
 %%% Make figure
 subplot('Position',axpos(1,:));
 for n_Cd=1:N_Cd
-  semilogx(tau_mean,Ttot(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:));
+  semilogx(tau_mean,Ttot(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end
@@ -151,7 +154,7 @@ hold off;
 ylabel('Total transport (Sv)');
 set(gca,'XTick',tau_ticks);
 set(gca,'XLim',[0 0.5]);
-set(gca,'YLim',[0 90]);
+set(gca,'YLim',[10 90]);
 set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
@@ -160,7 +163,7 @@ annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)',
 %%% Make figure
 subplot('Position',axpos(2,:));
 for n_Cd=1:N_Cd
-  semilogx(tau_mean,Tbt(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:));
+  semilogx(tau_mean,Tbt(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end
@@ -170,7 +173,7 @@ hold off;
 ylabel('Barotropic transport (Sv)');
 set(gca,'XTick',tau_ticks);
 set(gca,'XLim',[0 0.5]);
-set(gca,'YLim',[0 90]);
+set(gca,'YLim',[-10 90]);
 set(gca,'FontSize',fontsize);
 grid on;
 legstr = {};
@@ -184,7 +187,7 @@ annotation('textbox',[axpos(2,1)-0.105 axpos(2,2)-0.04 lab_size],'String','(b)',
 %%% Make figure
 subplot('Position',axpos(3,:));
 for n_Cd=1:N_Cd
-  semilogx(tau_mean,Tbc(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:));
+  semilogx(tau_mean,Tbc(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end
@@ -194,7 +197,7 @@ xlabel('Wind Stress (N/m^2)');
 ylabel('Baroclinic transport (Sv)');
 set(gca,'XTick',tau_ticks);
 set(gca,'XLim',[0 0.5]);
-set(gca,'YLim',[0 90]);
+set(gca,'YLim',[-10 90]);
 set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(3,1)-0.105 axpos(3,2)-0.04 lab_size],'String','(c)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
@@ -287,7 +290,7 @@ set(gcf,'Position',[1082   306   500   1000]);
 %%% Make figure
 subplot('Position',axpos(1,:));
 for n_Cd=1:N_Cd
-  loglog(tau_mean,kap(n_Cd,:),'o-','Color',colororder(n_Cd,:));
+  loglog(tau_mean,kap(n_Cd,:),'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
 %   plot(tau_mean,kap(n_Cd,:),'o-');
   if (n_Cd == 1)
   hold on;
@@ -311,7 +314,7 @@ text(0.07,1000,'$\tau^{0.4}$','interpreter','latex','FontSize',fontsize);
 %%% Make figure
 subplot('Position',axpos(2,:));
 for n_Cd=1:N_Cd
-  loglog(tau_mean,EKE_tot(n_Cd,:),'o-','Color',colororder(n_Cd,:));
+  loglog(tau_mean,EKE_tot(n_Cd,:),'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end
@@ -339,7 +342,7 @@ text(0.07,8e-3,'$\tau^{0.9}$','interpreter','latex','FontSize',fontsize);
 subplot('Position',axpos(3,:));
 for n_Cd=1:N_Cd
 %   semilogx(tau_mean,SKE_tot(n_Cd,:),'o-');
-  loglog(tau_mean,SKE_tot(n_Cd,:),'o-','Color',colororder(n_Cd,:));
+  loglog(tau_mean,SKE_tot(n_Cd,:),'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end

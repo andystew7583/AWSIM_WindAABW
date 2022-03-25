@@ -18,7 +18,7 @@ tmax = 30.5*t1year;
 
 %%% Index of reference simulation
 idx_ref_tm = 9;
-idx_ref_rb = 4;
+idx_ref_rb = 3;
 
 
 
@@ -27,7 +27,7 @@ idx_ref_rb = 4;
 %%% Parameter selection %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Ny = 128;
+Ny = 256;
 Nx = Ny*2;
 Nlay = 2;
 is_spinup = false;
@@ -40,7 +40,8 @@ AABW_freq = 0;
 % quad_drag = [.5e-3 1e-3 1.5e-3 2e-3 2.5e-3 3e-3 3.5e-3 4e-3];
 % quad_drag = 2e-3;
 quad_drag = 0e-3;
-lin_drag = [1e-4 2e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4];
+% lin_drag = [1e-4 2e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4];
+lin_drag = [2e-4 3e-4 4e-4 5e-4 6e-4 7e-4 8e-4 9e-4 10e-4];
 % lin_drag = 0e-4;
 topog_width = 150;
 topog_height = 1000;
@@ -265,11 +266,10 @@ grid on;
 %%% Scatter plot options
 markersize = 10;
 markershapes = {'>','o','*','<','v','d','^','s','x','+'};
-defaultcolororder = zeros(9,3);
+defaultcolororder = zeros(8,3);
 defaultcolororder(1:7,:) = get(gca,'ColorOrder');
-defaultcolororder(8,:) = [1 0 0];
-defaultcolororder(9,:) = [0 0 1];
-colororder = zeros(8,3);
+defaultcolororder(8,:) = [.3 .3 .3];
+colororder = zeros(9,3);
 colororder(1:idx_ref_rb-1,:) = defaultcolororder(1:idx_ref_rb-1,:);
 colororder(idx_ref_rb,:) = [0 0 0];
 colororder(idx_ref_rb+1:N_rb,:) = defaultcolororder(idx_ref_rb:N_rb-1,:);

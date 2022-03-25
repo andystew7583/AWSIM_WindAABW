@@ -27,7 +27,7 @@ idx_ref_Cd = 4;
 %%% Parameter selection %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Ny = 128;
+Ny = 256;
 Nx = Ny*2;
 Nlay = 2;
 is_spinup = false;
