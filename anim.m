@@ -367,36 +367,62 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
           zeta(2:Nx,2:Ny,k) = (uu(1:Nx-1,1:Ny-1)-uu(1:Nx-1,2:Ny)) / dy + (vv(2:Nx,2:Ny)-vv(1:Nx-1,2:Ny)) / dx;                      
           
         end
+        
+        data_file = fullfile(dirpath,[OUTN_PI,'_n=',num2str(n),'.dat']);
+        pi = readOutputFile(data_file,Nx,Ny); 
 
         %%% Correct boundaries
         if (~useWallNS)
           zeta(:,Ny+1,:) = zeta(:,1,:);
         end
         zeta(Nx+1,:,:) = zeta(1,:,:);        
-            
+        Ro = zeta(:,:,1)./(2*Omega_z);
+
+        %%% Calculate PV        
+        ff = 2*Omega_z;        
+        hh_q = NaN*ones(Nx+1,Ny+1,Nlay);
+        hh_q(2:Nx,2:Ny,:) = 0.25 * (hh(2:Nx,1:Ny-1,:)+hh(2:Nx,2:Ny,:)+hh(1:Nx-1,1:Ny-1,:)+hh(1:Nx-1,2:Ny,:));        
+        pv = (ff+zeta)./hh_q; 
+        min(min(pv))
+        max(max(pv))
         
         %%% Make the plot
         clf;
         pbaspect([2,1,1]);
-        eta_plot = eta(:,:,2);
-        Ro = zeta(:,:,2)./(2*Omega_z);
-        p = surface(XX_h/1000,YY_h/1000,eta_plot,Ro);
+        eta_plot = eta(:,:,1);        
+%         p = surface(XX_h/1000,YY_h/1000,eta_plot,Ro);
+%         p = surface(XX_h/1000,YY_h/1000,eta_plot,sqrt(uu.^2+vv.^2));
+        p = surface(XX_h/1000,YY_h/1000,eta_plot,pv(:,:,1));
+%         p = surface(XX_h/1000,YY_h/1000,eta_plot,pi/gg(1));
         p.FaceColor = 'texturemap';
-        colormap(cmocean('balance'));
-        caxis([-.3 .3]);
+%         contourf(XX_h/1000,YY_h/1000,eta_plot,pi/gg(1),[-.5:0.05:.5]);
+        colormap(cmocean('curl'));
+%         colormap(cmocean('amp'));
+%         colormap(pmkmp(100,'Swtth'));
+%         colormap haxby;
+%         caxis([-.3 .3]);
+%         caxis([0 .5]);
+        caxis([-2e-7 -7e-8]);
+%         caxis([-.5 .5]);
         p.EdgeColor = 'none';         
-        alpha(p,0.7);
+        alpha(p,1);
         hold on;
-        eta_plot = eta(:,:,3);
+        eta_plot = eta(:,:,2);
         p = surface(XX_h/1000,YY_h/1000,eta_plot);
         p.FaceColor = [48 129 238]/256;
+        p.EdgeColor = 'none';        
+        alpha(p,0.7);
+        eta_plot = eta(:,:,3);
+        p = surface(XX_h/1000,YY_h/1000,eta_plot);
+        p.FaceColor = [24 60 139]/256;
         p.EdgeColor = 'none';        
         alpha(p,0.7);
         p = surface(XX_h/1000,YY_h/1000,eta(:,:,Nlay+1));
         p.FaceColor = [139,69,19]/256;
         p.EdgeColor = 'none';          
         hold off;        
-        view(32,44);
+        view(45,32);
+%         view(32,44);
         lighting gouraud;
         camlight('headlight');        
         title(strcat(['t=',num2str(t/t1year,'%.2f'),' years']));        
