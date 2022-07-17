@@ -100,10 +100,10 @@ for n_tm=1:N_tm
     hdMdy_eddy = hdMdy_tavg - hdMdy_mean;
 
     %%% Compute eddy momentum flux terms
-    husq_mean = hh_w_tavg.*0.5.*(uu_twa(1:Nx,:,:).^2+uu_twa([2:Nx 1],:,:).^2);
-    hvsq_mean = hh_s_tavg.*0.5.*(vv_twa(:,1:Ny,:).^2+vv_twa(:,[2:Ny 1],:).^2);
-    huv_mean = 0.5.*(uu_twa(1:Nx,:,:)+uu_twa([Nx 1:Nx-1],:,:)) ...
-                    .* 0.5.*(vv_twa(:,1:Ny,:)+vv_twa(:,[Ny 1:Ny-1],:)) ...
+    husq_mean = hh_w_tavg.*uu_twa.^2;
+    hvsq_mean = hh_s_tavg.*vv_twa.^2;
+    huv_mean = 0.5.*(vv_twa(1:Nx,:,:)+vv_twa([Nx 1:Nx-1],:,:)) ...
+                    .* 0.5.*(uu_twa(:,1:Ny,:)+uu_twa(:,[Ny 1:Ny-1],:)) ...
                     .* hh_q_tavg;                  
     husq_eddy = husq_tavg - husq_mean;
     hvsq_eddy = hvsq_tavg - hvsq_mean;
@@ -214,17 +214,18 @@ axlabels = {'(a)','(b)','(c)','(d)'};
 lab_size = [0.05 0.03];
 tau_ticks = [5e-3 0.01 0.017 0.03 0.05 0.1 0.17 0.3 0.5];
 rho0 = 1000;
+linewidth = 1.5;
 
 figure(106);
 clf;
 set(gcf,'Position',[382   306   888   679]);
 
 subplot('Position',axpos(1,:));
-loglog(tau_mean,-rho0*tau_cntr_batch(idx_ref_Cd,:)/Lx,'o-');
+loglog(tau_mean,-rho0*tau_cntr_batch(idx_ref_Cd,:)/Lx,'o-','LineWidth',1.5);
 hold on;
-loglog(tau_mean,-rho0*hgradM_eddy_cntr_batch(idx_ref_Cd,:)/Lx,'o-');
-loglog(tau_mean,-rho0*eddyforce_cntr_batch(idx_ref_Cd,:)/Lx,'o-');
-loglog(tau_mean,-rho0*(hgradM_eddy_cntr_batch(idx_ref_Cd,:)+eddyforce_cntr_batch(idx_ref_Cd,:))/Lx,'o-');
+loglog(tau_mean,-rho0*hgradM_eddy_cntr_batch(idx_ref_Cd,:)/Lx,'o-','LineWidth',1.5);
+loglog(tau_mean,-rho0*eddyforce_cntr_batch(idx_ref_Cd,:)/Lx,'o-','LineWidth',1.5);
+loglog(tau_mean,-rho0*(hgradM_eddy_cntr_batch(idx_ref_Cd,:)+eddyforce_cntr_batch(idx_ref_Cd,:))/Lx,'o-','LineWidth',1.5);
 loglog([.1 .1],[5e-3 .5],'k:','LineWidth',2);
 hold off;
 axis([0.01 .5 5e-3 .5]);
@@ -240,11 +241,11 @@ grid on;
 colororder = get(gca,'ColorOrder');
 
 subplot('Position',axpos(2,:));
-loglog(tau_mean,-rho0*hgradM_eddy_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(5,:));
+loglog(tau_mean,-rho0*hgradM_eddy_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(5,:),'LineWidth',1.5);
 hold on;
 % semilogx(tau_mean,rho0*hgradM_kap_cntr_batch(idx_ref_Cd,:)/Lx,'o-');
-loglog(tau_mean,rho0*hgradM_refkap_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(6,:));
-loglog(tau_mean,rho0*hgradM_refflow_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(7,:));
+loglog(tau_mean,rho0*hgradM_refkap_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(6,:),'LineWidth',1.5);
+loglog(tau_mean,rho0*hgradM_refflow_cntr_batch(idx_ref_Cd,:)/Lx,'o-','Color',colororder(7,:),'LineWidth',1.5);
 loglog([.1 .1],[5e-3 .5],'k:','LineWidth',2);
 hold off;
 axis([0.01 .5 5e-3 .5]);
@@ -260,7 +261,7 @@ set(leghandle,'interpreter','latex','Location','NorthWest');
 grid on;
 
 %%% Scatter plot options
-markersize = 10;
+markersize = 14;
 markershapes = {'>','*','<','o','v','d','^','s'};
 defaultcolororder = get(gca,'ColorOrder');
 colororder = zeros(8,3);
@@ -288,7 +289,7 @@ set(gca,'YTick',tau_ticks);
 set(gca,'XScale','log');
 set(gca,'YScale','log');
 axis([4e-3 0.3 4e-3 0.3]);
-text(0.07,0.005,['lRMSE = ',num2str(lrmse,'%.3f')],'FontSize',fontsize);
+text(0.07,0.005,['LRMSE = ',num2str(lrmse,'%.3f')],'FontSize',fontsize);
 
 legstr = {};
 for n_Cd=1:N_Cd
@@ -317,7 +318,7 @@ set(gca,'YTick',tau_ticks);
 set(gca,'XScale','log');
 set(gca,'YScale','log');
 axis([4e-3 0.3 4e-3 0.3]);
-text(0.07,0.005,['lRMSE = ',num2str(lrmse,'%.3f')],'FontSize',fontsize);
+text(0.07,0.005,['LRMSE = ',num2str(lrmse,'%.3f')],'FontSize',fontsize);
 
 
 %%% Add axis labels

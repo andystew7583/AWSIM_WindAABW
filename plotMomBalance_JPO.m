@@ -70,10 +70,10 @@ hdMdy_mean = hh_s_tavg.*(MM_tavg(:,1:Ny,:)-MM_tavg(:,[Ny 1:Ny-1],:))/dy;
 hdMdy_eddy = hdMdy_tavg - hdMdy_mean;
 
 %%% Compute eddy momentum flux terms
-husq_mean = hh_w_tavg.*0.5.*(uu_twa(1:Nx,:,:).^2+uu_twa([2:Nx 1],:,:).^2);
-hvsq_mean = hh_s_tavg.*0.5.*(vv_twa(:,1:Ny,:).^2+vv_twa(:,[2:Ny 1],:).^2);
-huv_mean = 0.5.*(uu_twa(1:Nx,:,:)+uu_twa([Nx 1:Nx-1],:,:)) ...
-                .* 0.5.*(vv_twa(:,1:Ny,:)+vv_twa(:,[Ny 1:Ny-1],:)) ...
+husq_mean = hh_w_tavg.*uu_twa.^2;
+hvsq_mean = hh_s_tavg.*vv_twa.^2;
+huv_mean = 0.5.*(uv_twa(1:Nx,:,:)+vv_twa([Nx 1:Nx-1],:,:)) ...
+                .* 0.5.*(uu_twa(:,1:Ny,:)+uu_twa(:,[Ny 1:Ny-1],:)) ...
                 .* hh_q_tavg;                  
 husq_eddy = husq_tavg - husq_mean;
 hvsq_eddy = hvsq_tavg - hvsq_mean;
@@ -185,11 +185,12 @@ axpos(4,:) = [0.07 0.18 .4 .2];
 axpos(3,:) = [0.57 0.44 .4 .2];
 axpos(5,:) = [0.57 0.18 .4 .2];
 legpos1 = [0.17 0.01 0.2 0.1];
-legpos2 = [0.67 0.01 0.2 0.1];
+legpos2 = [0.67 0.02 0.2 0.1];
 axlabels = {'(a)','(b)','(c)','(d)','(e)'};
 lab_size = [0.05 0.03];
 tau_ticks = [0.01 0.017 0.03 0.05 0.1 0.17 0.3];
 rho0 = 1000;
+linewidth = 2;
 
 figure(102);
 clf;
@@ -217,13 +218,13 @@ title('Mean sea surface height (m)');
 colororder = get(gca,'ColorOrder');
 
 subplot('Position',axpos(2,:));
-plot(yy_h/m1km,mean(taux,1)*rho0,'Color',colororder(1,:));
+plot(yy_h/m1km,mean(taux,1)*rho0,'Color',colororder(1,:),'LineWidth',2);
 hold on;
-plot(yy_h/m1km,mean(sum(-hdMdx_tavg,3),1)*rho0,'Color',colororder(2,:));
-plot(yy_h/m1km,mean(sum(UMom_advection,3),1)*rho0,'Color',colororder(3,:));
-plot(yy_h/m1km,mean(sum(-eddyforce_x,3),1)*rho0,'Color',colororder(3,:),'LineStyle','--');
-plot(yy_h/m1km,mean(sum(UMom_quadBotDrag,3),1)*rho0,'Color',colororder(4,:));
-% plot(yy_h/m1km,mean(sum(UMom_hypervisc,3),1)*rho0,'Color',colororder(5,:));
+plot(yy_h/m1km,mean(sum(-hdMdx_tavg,3),1)*rho0,'Color',colororder(2,:),'LineWidth',2);
+plot(yy_h/m1km,mean(sum(UMom_advection,3),1)*rho0,'Color',colororder(3,:),'LineWidth',2);
+plot(yy_h/m1km,mean(sum(-eddyforce_x,3),1)*rho0,'Color',colororder(3,:),'LineStyle','--','LineWidth',2);
+plot(yy_h/m1km,mean(sum(UMom_quadBotDrag,3),1)*rho0,'Color',colororder(4,:),'LineWidth',2);
+% plot(yy_h/m1km,mean(sum(UMom_hypervisc,3),1)*rho0,'Color',colororder(5,:),'LineWidth',2);
 plot(yy_h/m1km,mean(taux+sum(-hdMdx_tavg+UMom_quadBotDrag+UMom_advection+UMom_hypervisc,3),1)*rho0,'Color',[.7 .7 .7],'LineWidth',2);
 hold off;
 set(gca,'FontSize',fontsize);
@@ -234,13 +235,13 @@ title('Depth-integrated momentum balance');
 grid on;
 
 subplot('Position',axpos(3,:));
-plot(yy_h/m1km,mean(taux,1)*rho0,'Color',colororder(1,:));
+plot(yy_h/m1km,mean(taux,1)*rho0,'Color',colororder(1,:),'LineWidth',2);
 hold on;
-plot(yy_h/m1km,mean(-(hdMdx_tavg(:,:,1)-hdMdx_eddy(:,:,1)),1)*rho0,'Color',colororder(2,:));
-plot(yy_h/m1km,mean(-hdMdx_eddy(:,:,1),1)*rho0,'Color',colororder(2,:),'LineStyle','--');
-plot(yy_h/m1km,mean(UMom_advection(:,:,1)+eddyforce_x(:,:,1),1)*rho0,'Color',colororder(3,:));
-plot(yy_h/m1km,mean(-eddyforce_x(:,:,1),1)*rho0,'Color',colororder(3,:),'LineStyle','--');
-% plot(yy_h/m1km,mean(UMom_hypervisc(:,:,1),1)*rho0,'Color',colororder(5,:));
+plot(yy_h/m1km,mean(-(hdMdx_tavg(:,:,1)-hdMdx_eddy(:,:,1)),1)*rho0,'Color',colororder(2,:),'LineWidth',2);
+plot(yy_h/m1km,mean(-hdMdx_eddy(:,:,1),1)*rho0,'Color',colororder(2,:),'LineStyle','--','LineWidth',2);
+plot(yy_h/m1km,mean(UMom_advection(:,:,1)+eddyforce_x(:,:,1),1)*rho0,'Color',colororder(3,:),'LineWidth',2);
+plot(yy_h/m1km,mean(-eddyforce_x(:,:,1),1)*rho0,'Color',colororder(3,:),'LineStyle','--','LineWidth',2);
+% plot(yy_h/m1km,mean(UMom_hypervisc(:,:,1),1)*rho0,'Color',colororder(5,:),'LineWidth',2);
 plot(yy_h/m1km,mean(taux-hdMdx_tavg(:,:,1)+UMom_advection(:,:,1)+UMom_hypervisc(:,:,1),1)*rho0,'Color',[.7 .7 .7],'LineWidth',2);
 hold off;
 set(gca,'FontSize',fontsize);
@@ -250,13 +251,13 @@ title('Upper layer momentum balance');
 grid on;
 
 subplot('Position',axpos(4,:));
-plot(MM_grid/gg(1),tau_cntr*rho0/Lx,'Color',colororder(1,:));
+plot(MM_grid/gg(1),tau_cntr*rho0/Lx,'Color',colororder(1,:),'LineWidth',2);
 hold on;
-plot(MM_grid/gg(1),-tfs_cntr*rho0/Lx,'Color',colororder(2,:));
-plot(MM_grid/gg(1),adv_cntr_bt*rho0/Lx,'Color',colororder(3,:));
-plot(MM_grid/gg(1),-eddyforce_cntr_bt*rho0/Lx,'Color',colororder(3,:),'LineStyle','--');
-plot(MM_grid/gg(1),drag_cntr*rho0/Lx,'Color',colororder(4,:));
-% plot(MM_grid/gg(1),visc_cntr_bt*rho0/Lx,'Color',colororder(5,:));
+plot(MM_grid/gg(1),-tfs_cntr*rho0/Lx,'Color',colororder(2,:),'LineWidth',2);
+plot(MM_grid/gg(1),adv_cntr_bt*rho0/Lx,'Color',colororder(3,:),'LineWidth',2);
+plot(MM_grid/gg(1),-eddyforce_cntr_bt*rho0/Lx,'Color',colororder(3,:),'LineStyle','--','LineWidth',2);
+plot(MM_grid/gg(1),drag_cntr*rho0/Lx,'Color',colororder(4,:),'LineWidth',2);
+% plot(MM_grid/gg(1),visc_cntr_bt*rho0/Lx,'Color',colororder(5,:),'LineWidth',2);
 plot(MM_grid/gg(1),(tau_cntr-tfs_cntr+adv_cntr_bt+drag_cntr+visc_cntr_bt)*rho0/Lx,'Color',[.7 .7 .7],'LineWidth',2);
 plot([MM_thresh, MM_thresh]/gg(1),[-.13 .13],'k--');
 hold off;
@@ -271,15 +272,15 @@ leghandle = legend('Wind stress','Topographic form stress','Advection (mean)','A
 set(leghandle,'Position',legpos1);
 
 subplot('Position',axpos(5,:));
-plot(MM_grid/gg(1),tau_cntr*rho0/Lx,'Color',colororder(1,:));
+plot(MM_grid/gg(1),tau_cntr*rho0/Lx,'Color',colororder(1,:),'LineWidth',2);
 hold on;
-plot(MM_grid/gg(1),-(hgradM_tavg_cntr_bc-hgradM_eddy_cntr_bc)*rho0/Lx,'Color',colororder(2,:));
-plot(MM_grid/gg(1),-hgradM_eddy_cntr_bc*rho0/Lx,'Color',colororder(2,:),'LineStyle','--');
-plot(MM_grid/gg(1),(adv_cntr_bc+eddyforce_cntr_bc)*rho0/Lx,'Color',colororder(3,:));
-plot(MM_grid/gg(1),-eddyforce_cntr_bc*rho0/Lx,'Color',colororder(3,:),'LineStyle','--');
-% plot(MM_grid/gg(1),visc_cntr_bc*rho0/Lx,'Color',colororder(5,:));
+plot(MM_grid/gg(1),-(hgradM_tavg_cntr_bc-hgradM_eddy_cntr_bc)*rho0/Lx,'Color',colororder(2,:),'LineWidth',2);
+plot(MM_grid/gg(1),-hgradM_eddy_cntr_bc*rho0/Lx,'Color',colororder(2,:),'LineStyle','--','LineWidth',2);
+plot(MM_grid/gg(1),-hgradM_kap_cntr*rho0/Lx,'Color',colororder(2,:),'LineStyle',':','LineWidth',2);
+plot(MM_grid/gg(1),(adv_cntr_bc+eddyforce_cntr_bc)*rho0/Lx,'Color',colororder(3,:),'LineWidth',2);
+plot(MM_grid/gg(1),-eddyforce_cntr_bc*rho0/Lx,'Color',colororder(3,:),'LineStyle','--','LineWidth',2);
+% plot(MM_grid/gg(1),visc_cntr_bc*rho0/Lx,'Color',colororder(5,:),'LineWidth',2);
 plot(MM_grid/gg(1),(tau_cntr-hgradM_tavg_cntr_bc+adv_cntr_bc+visc_cntr_bc)*rho0/Lx,'Color',[.7 .7 .7],'LineWidth',2);
-plot(MM_grid/gg(1),-hgradM_kap_cntr*rho0/Lx,'Color',colororder(2,:),'LineStyle',':');
 plot([MM_thresh, MM_thresh]/gg(1),[-.13 .13],'k--');
 hold off;
 set(gca,'FontSize',fontsize);
@@ -288,7 +289,7 @@ set(gca,'YLim',[-.13 .13]);
 set(gca,'XLim',[-.25 .3]);
 grid on;
 
-leghandle = legend('Wind stress','Interfacial form stress (mean)','Interfacial form stress (eddy)','Advection (mean)','Advection (eddy)','Sum');
+leghandle = legend('Wind stress','Interfacial form stress (mean)','Interfacial form stress (eddy)','Interfacial form stress (reconstructed)','Advection (mean)','Advection (eddy)','Sum');
 set(leghandle,'Position',legpos2);
 
 %%% Add axis labels

@@ -103,11 +103,16 @@ for n_tm = 1:N_tm
 %     Ttot(n_Cd,n_tm) = sum(sum(squeeze(hu_tavg(idx_topog,:,:)),2),1)*dy;
 %     Tbt(n_Cd,n_tm) = sum(u_tavg(idx_topog,:,end).*(-hhb(idx_topog,:)).*dy,2);
 %     Tbc(n_Cd,n_tm) = Ttot(n_Cd,n_tm) - Tbt(n_Cd,n_tm);
+
+%     %%% Compute diffusivity
+%     [kap_bulk,nu_bulk,r_kap_bulk,r_nu_bulk,EKE_zavg] = calcBulkEddyViscDiff(local_home_dir,run_name);
+%     kap(n_Cd,n_tm) = kap_bulk;
+%     r_kap(n_Cd,n_tm) = r_kap_bulk;
     
-    %%% Compute diffusivity
-    [kap_bulk,nu_bulk,r_kap_bulk,r_nu_bulk,EKE_zavg] = calcBulkEddyViscDiff(local_home_dir,run_name);
-    kap(n_Cd,n_tm) = kap_bulk;
-    r_kap(n_Cd,n_tm) = r_kap_bulk;
+    %%% Load eddy diffusivity and viscosity maps
+    load(fullfile(prod_dir,['kap_nu_',run_name,'.mat']));
+    EKE_thresh = quantile(EKE_zavg(:),0.75);
+    kap(n_Cd,n_tm) = mean(kap_map(EKE_zavg>EKE_thresh));  
     EKE_tot(n_Cd,n_tm) = sum(sum(EKE_zavg.*(-hhb)*dx*dy)) / sum(sum((-hhb)*dx*dy));
     
   end
@@ -296,8 +301,8 @@ for n_Cd=1:N_Cd
   hold on;
   end
 end
-loglog(tau_mean(7:10),350*(tau_mean(7:10)/0.05).^.25,'k--');
-loglog(tau_mean(7:10),1000*(tau_mean(7:10)/0.1).^.4,'k--');
+% loglog(tau_mean(7:10),150*(tau_mean(7:10)/0.05).^.4,'k--');
+loglog(tau_mean(7:10),600*(tau_mean(7:10)/0.1).^.6,'k--');
 hold off;
 % xlabel('Wind Stress (N/m^2)');
 ylabel('Transient eddy diffusivity (m^2/s)');
@@ -306,8 +311,8 @@ set(gca,'XLim',[0 0.5]);
 set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
-text(0.075,300,'$\tau^{0.25}$','interpreter','latex','FontSize',fontsize);
-text(0.07,1000,'$\tau^{0.4}$','interpreter','latex','FontSize',fontsize);
+% text(0.075,100,'$\tau^{0.25}$','interpreter','latex','FontSize',fontsize);
+text(0.07,600,'$\tau^{0.6}$','interpreter','latex','FontSize',fontsize);
 
 
 
@@ -348,6 +353,7 @@ for n_Cd=1:N_Cd
   end
 end
 loglog(tau_mean(7:10),1.5e-3*(tau_mean(7:10)/0.1).^1,'k--');
+loglog(tau_mean,0.1875*tau_mean,'k:');
 hold off;
 xlabel('Wind Stress (N/m^2)');
 ylabel('Standing wave kinetic energy (m^2/s^2)');

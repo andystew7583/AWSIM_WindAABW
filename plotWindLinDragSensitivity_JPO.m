@@ -106,10 +106,15 @@ for n_tm = 1:N_tm
 %     Tbt(n_rb,n_tm) = sum(uu_tavg(idx_topog,:,end).*(-hhb(idx_topog,:)).*dy,2);
 %     Tbc(n_rb,n_tm) = Ttot(n_rb,n_tm) - Tbt(n_rb,n_tm);
     
-    %%% Compute diffusivity
-    [kap_bulk,nu_bulk,r_kap_bulk,r_nu_bulk,EKE_zavg] = calcBulkEddyViscDiff(local_home_dir,run_name);
-    kap(n_rb,n_tm) = kap_bulk;
-    r_kap(n_rb,n_tm) = r_kap_bulk;
+%     %%% Compute diffusivity
+%     [kap_bulk,nu_bulk,r_kap_bulk,r_nu_bulk,EKE_zavg] = calcBulkEddyViscDiff(local_home_dir,run_name);
+%     kap(n_rb,n_tm) = kap_bulk;
+%     r_kap(n_rb,n_tm) = r_kap_bulk;
+
+    %%% Load eddy diffusivity and viscosity maps
+    load(fullfile(prod_dir,['kap_nu_',run_name,'.mat']));
+    EKE_thresh = quantile(EKE_zavg(:),0.75);
+    kap(n_rb,n_tm) = mean(kap_map(EKE_zavg>EKE_thresh));  
     EKE_tot(n_rb,n_tm) = sum(sum(EKE_zavg.*(-hhb)*dx*dy)) / sum(sum((-hhb)*dx*dy));
     
   end
@@ -300,9 +305,10 @@ for n_rb=1:N_rb
   hold on;
   end
 end
-loglog(tau_mean(7:10),350*(tau_mean(7:10)/0.05).^.2,'k--');
+loglog(tau_mean(7:10),400*(tau_mean(7:10)/0.05).^.5,'k--');
+loglog(tau_mean(7:10),100*(tau_mean(7:10)/0.05).^.8,'k--');
 % loglog(tau_mean(7:10),1000*(tau_mean(7:10)/0.1).^.4,'k--');
-loglog(tau_mean(2:4),200*(tau_mean(2:4)/0.017).^1,'k--');
+% loglog(tau_mean(2:4),200*(tau_mean(2:4)/0.017).^1,'k--');
 hold off;
 % xlabel('Wind Stress (N/m^2)');
 ylabel('Transient eddy diffusivity (m^2/s)');
@@ -311,9 +317,10 @@ set(gca,'XLim',[0 0.5]);
 set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
-text(0.075,300,'$\tau^{0.2}$','interpreter','latex','FontSize',fontsize);
+text(0.075,650,'$\tau^{0.5}$','interpreter','latex','FontSize',fontsize);
+text(0.075,100,'$\tau^{0.8}$','interpreter','latex','FontSize',fontsize);
 % text(0.07,1000,'$\tau^{0.4}$','interpreter','latex','FontSize',fontsize);
-text(0.017,150,'$\tau^{1}$','interpreter','latex','FontSize',fontsize);
+% text(0.017,150,'$\tau^{1}$','interpreter','latex','FontSize',fontsize);
 
 
 

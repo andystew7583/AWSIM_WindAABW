@@ -6,7 +6,7 @@
 
 %%% Run to load
 % run_name = 'ACC_AABW_Ny128_Nlay2_tauM0.1_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd0.000e+00_rb2.000e-04_diags';
-run_name = 'ACC_AABW_Ny256_Nlay2_tauM0.1_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_diags';
+run_name = 'ACC_AABW_Ny256_Nlay2_tauM0.017_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_diags';
 
 %%% Load parameters   
 local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM_WindAABW/runs';

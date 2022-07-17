@@ -39,10 +39,10 @@ function [kap_map,nu_map,r_kap_map,r_nu_map,p_kap_map,p_nu_map] = calcEddyViscDi
   hdMdy_eddy = hdMdy_tavg - hdMdy_mean;
 
   %%% Compute eddy momentum flux terms
-  husq_mean = hh_w_tavg.*0.5.*(uu_twa(1:Nx,:,:).^2+uu_twa([2:Nx 1],:,:).^2);
-  hvsq_mean = hh_s_tavg.*0.5.*(vv_twa(:,1:Ny,:).^2+vv_twa(:,[2:Ny 1],:).^2);
-  huv_mean = 0.5.*(uu_twa(1:Nx,:,:)+uu_twa([Nx 1:Nx-1],:,:)) ...
-                  .* 0.5.*(vv_twa(:,1:Ny,:)+vv_twa(:,[Ny 1:Ny-1],:)) ...
+  husq_mean = hh_w_tavg.*uu_twa.^2;
+  hvsq_mean = hh_s_tavg.*vv_twa.^2;
+  huv_mean = 0.5.*(vv_twa(1:Nx,:,:)+vv_twa([Nx 1:Nx-1],:,:)) ...
+                  .* 0.5.*(uu_twa(:,1:Ny,:)+uu_twa(:,[Ny 1:Ny-1],:)) ...
                   .* hh_q_tavg;                  
   husq_eddy = husq_tavg - husq_mean;
   hvsq_eddy = hvsq_tavg - hvsq_mean;
