@@ -215,7 +215,7 @@ axpos(4,:) = [0.575 0.06 .41 .42];
 axlabels = {'(a)','(b)','(c)','(d)'};
 lab_size = [0.05 0.03];
 tau_ticks = [3e-3 5e-3 0.01 0.017 0.03 0.05 0.1 0.17 0.3 0.5];
-rho0 = 1000;
+rho0 = 1000;p
 
 figure(109);
 clf;
@@ -236,7 +236,7 @@ set(gca,'XLim',[0.01 0.5]);
 set(gca,'FontSize',fontsize);
 xlabel('Wind stress maximum (N/m$^2$)','interpreter','latex');
 ylabel('Along-streamline forcing (N/m$^2$)','interpreter','latex');
-leghandle = legend('Wind stress','Eddy IFS','Eddy momentum flux convergence','Total eddy force');
+leghandle = legend('Wind stress','Eddy IFS','Eddy advection','Total eddy force');
 set(leghandle,'interpreter','latex','Location','NorthWest');
 grid on;
 

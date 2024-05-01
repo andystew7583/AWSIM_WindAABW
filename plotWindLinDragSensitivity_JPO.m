@@ -11,6 +11,7 @@ constants;
 
 %%% Directory to store runs
 local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM_WindAABW/runs';
+prod_dir = fullfile('./products');
 
 %%% Spinup simulations are long and produce no diagnostic, diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
@@ -131,6 +132,7 @@ axpos(3,:) = [0.12 0.05 .84 .28];
 axlabels = {'(a)','(b)','(c)'};
 lab_size = [0.05 0.03];
 tau_ticks = [0.01 0.017 0.03 0.05 0.1 0.17 0.3 0.5];
+% tau_ticks = [0:0.05:0.5];
 rho0 = 1000;
 
 defaultcolororder = zeros(8,3);
@@ -172,7 +174,8 @@ annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)',
 %%% Make figure
 subplot('Position',axpos(2,:));
 for n_rb=1:N_rb
-  semilogx(tau_mean,Tbt(n_rb,:)/1e6,'-','Color',colororder(n_rb,:),'Marker',markershapes{n_rb},'MarkerFaceColor',colororder(n_rb,:));
+%   semilogx(tau_mean,Tbt(n_rb,:)/1e6,'-','Color',colororder(n_rb,:),'Marker',markershapes{n_rb},'MarkerFaceColor',colororder(n_rb,:));
+  plot(tau_mean,Tbt(n_rb,:)/1e6,'-','Color',colororder(n_rb,:),'Marker',markershapes{n_rb},'MarkerFaceColor',colororder(n_rb,:));
   if (n_rb == 1)
   hold on;
   end
@@ -361,6 +364,7 @@ for n_rb=1:N_rb
   end
 end
 loglog(tau_mean(7:10),1.5e-3*(tau_mean(7:10)/0.1).^1,'k--');
+loglog(tau_mean(7:10),3.5e-4*(tau_mean(7:10)/0.1).^1.4,'k--');
 hold off;
 xlabel('Wind Stress (N/m^2)');
 ylabel('Standing wave kinetic energy (m^2/s^2)');
@@ -370,6 +374,7 @@ set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(3,1)-0.105 axpos(3,2)-0.04 lab_size],'String','(c)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
 text(0.07,1.5e-3,'$\tau^1$','interpreter','latex','FontSize',fontsize);
+text(0.07,1.3e-4,'$\tau^{1.4}$','interpreter','latex','FontSize',fontsize);
 
 
 % 

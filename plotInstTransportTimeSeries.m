@@ -5,17 +5,18 @@
 %%%
 
 %%% Options
-% run_name = 'ACC_AABW_ML_doubleMOC'; %%% Run to analyze
+run_name = 'ACC_AABW_ML_doubleMOC'; %%% Run to analyze
 % run_name = 'ACC_AABW_ML_randWdia_randTau_white'; %%% Run to analyze
-run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
+% run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
 tmin = 50*t1year; %%% Actual analysis period
-tmax = 300*t1year;
+tmax = 500*t1year;
 Dsmooth = 73; %%% Interval between smoothed times. N.B. 73 snapshots/year
 Nsmooth = 5*73; %%% Smoothing window width. N.B. 73 snapshots/year
 
 %%% Load parameters   
-% local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
-local_home_dir = '/data2/astewart/AWSIM/runs';
+% % local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
+local_home_dir = '/Volumes/Stewart-RAID1-A/UCLA/Projects/AWSIM/runs';
+% local_home_dir = '/data2/astewart/AWSIM/runs';
 prod_dir = fullfile(local_home_dir,'AWSIM_WindAABW_products');
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);

@@ -234,7 +234,7 @@ set(gca,'YTick',tau_ticks);
 set(gca,'FontSize',fontsize);
 xlabel('Wind stress maximum (N/m$^2$)','interpreter','latex');
 ylabel('Along-streamline forcing (N/m$^2$)','interpreter','latex');
-leghandle = legend('Wind stress','Eddy IFS','Eddy momentum flux convergence','Total eddy force');
+leghandle = legend('Wind stress','Eddy IFS','Eddy advection','Total eddy force');
 set(leghandle,'interpreter','latex','Location','NorthWest');
 grid on;
 

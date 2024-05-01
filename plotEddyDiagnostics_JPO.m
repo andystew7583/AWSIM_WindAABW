@@ -6,7 +6,7 @@
 
 %%% Run to load
 % run_name = 'ACC_AABW_Ny128_Nlay2_tauM0.1_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd0.000e+00_rb2.000e-04_diags';
-run_name = 'ACC_AABW_Ny256_Nlay2_tauM0.017_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_diags';
+run_name = 'ACC_AABW_Ny256_Nlay2_tauM0.1_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_diags';
 
 %%% Load parameters   
 local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM_WindAABW/runs';
@@ -82,7 +82,7 @@ hold off;
 ylabel('Latitude $y$ (km)','interpreter','latex');
 colorbar;
 caxis([-1000 1000]);
-colormap(gca,cmocean('balance'));
+colormap(gca,cmocean('balance',20));
 set(gca,'FontSize',fontsize);
 title('Transient eddy diffusivity, \kappa (m^2/s)');
 
@@ -97,7 +97,7 @@ xlabel('Longitude $x$ (km)','interpreter','latex');
 ylabel('Latitude $y$ (km)','interpreter','latex');
 colorbar;
 caxis([0 100]);
-colormap(gca,cmocean('amp'));
+colormap(gca,cmocean('amp',20));
 set(gca,'FontSize',fontsize);
 title('Variance explained by \kappa fit (%)');
 

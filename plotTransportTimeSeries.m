@@ -3,7 +3,7 @@
 % local_home_dir = '/Volumes/LaCie/UCLA/Projects/AWSIM_WindAABW/runs';
 % run_name = 'test_run';
 local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
-run_name = 'test_wdia_long_N256';
+run_name = 'ACC_AABW_ML_doubleMOC_hires';
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);
 

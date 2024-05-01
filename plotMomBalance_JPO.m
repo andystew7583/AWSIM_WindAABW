@@ -72,7 +72,7 @@ hdMdy_eddy = hdMdy_tavg - hdMdy_mean;
 %%% Compute eddy momentum flux terms
 husq_mean = hh_w_tavg.*uu_twa.^2;
 hvsq_mean = hh_s_tavg.*vv_twa.^2;
-huv_mean = 0.5.*(uv_twa(1:Nx,:,:)+vv_twa([Nx 1:Nx-1],:,:)) ...
+huv_mean = 0.5.*(vv_twa(1:Nx,:,:)+vv_twa([Nx 1:Nx-1],:,:)) ...
                 .* 0.5.*(uu_twa(:,1:Ny,:)+uu_twa(:,[Ny 1:Ny-1],:)) ...
                 .* hh_q_tavg;                  
 husq_eddy = husq_tavg - husq_mean;
@@ -280,7 +280,7 @@ plot(MM_grid/gg(1),-hgradM_kap_cntr*rho0/Lx,'Color',colororder(2,:),'LineStyle',
 plot(MM_grid/gg(1),(adv_cntr_bc+eddyforce_cntr_bc)*rho0/Lx,'Color',colororder(3,:),'LineWidth',2);
 plot(MM_grid/gg(1),-eddyforce_cntr_bc*rho0/Lx,'Color',colororder(3,:),'LineStyle','--','LineWidth',2);
 % plot(MM_grid/gg(1),visc_cntr_bc*rho0/Lx,'Color',colororder(5,:),'LineWidth',2);
-plot(MM_grid/gg(1),(tau_cntr-hgradM_tavg_cntr_bc+adv_cntr_bc+visc_cntr_bc)*rho0/Lx,'Color',[.7 .7 .7],'LineWidth',2);
+plot(MM_grid/gg(1),(tau_cntr-hgradM_tavg_cntr_bc+adv_cntr_bc+visc_cntr_bc)*rho0/Lx,'Color',[.7 .7 .7],'LineWidth',1);
 plot([MM_thresh, MM_thresh]/gg(1),[-.13 .13],'k--');
 hold off;
 set(gca,'FontSize',fontsize);

@@ -129,7 +129,22 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         shading interp;
         colorbar;
         title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
-        colormap jet;        
+        colormap jet;      
+
+      %%% Plot planetary pv
+      case 'w'
+        
+        %%% Load h
+        data_file = fullfile(dirpath,[OUTN_W,num2str(layer-1),'_n=',num2str(n),'.dat']);
+        ww = readOutputFile(data_file,Nx,Ny);    
+    
+        %%% Make the plot
+        pcolor(XX_q/1000,YY_q/1000,ww);
+        shading interp;
+        colorbar;
+        title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
+        colormap jet;       
+
 
       %%% Plot planetary pv
       case 'qp'
@@ -396,14 +411,15 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
 %         p = surface(XX_h/1000,YY_h/1000,eta_plot,pi/gg(1));
         p.FaceColor = 'texturemap';
 %         contourf(XX_h/1000,YY_h/1000,eta_plot,pi/gg(1),[-.5:0.05:.5]);
-        colormap(cmocean('curl'));
+%         colormap(cmocean('curl'));
+%         colormap(cmocean('balance'));
 %         colormap(cmocean('amp'));
-%         colormap(pmkmp(100,'Swtth'));
+        colormap(pmkmp(100,'Swtth'));
 %         colormap haxby;
 %         caxis([-.3 .3]);
 %         caxis([0 .5]);
-        caxis([-2e-7 -7e-8]);
-%         caxis([-.5 .5]);
+        caxis([-1e-7 -4e-8]);
+%         caxis([-.3 .3]);
         p.EdgeColor = 'none';         
         alpha(p,1);
         hold on;
@@ -412,16 +428,16 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         p.FaceColor = [48 129 238]/256;
         p.EdgeColor = 'none';        
         alpha(p,0.7);
-        eta_plot = eta(:,:,3);
-        p = surface(XX_h/1000,YY_h/1000,eta_plot);
-        p.FaceColor = [24 60 139]/256;
-        p.EdgeColor = 'none';        
-        alpha(p,0.7);
+%         eta_plot = eta(:,:,3);
+%         p = surface(XX_h/1000,YY_h/1000,eta_plot);
+%         p.FaceColor = [24 60 139]/256;
+%         p.EdgeColor = 'none';        
+%         alpha(p,0.7);
         p = surface(XX_h/1000,YY_h/1000,eta(:,:,Nlay+1));
         p.FaceColor = [139,69,19]/256;
         p.EdgeColor = 'none';          
         hold off;        
-        view(45,32);
+        view(60,32);
 %         view(32,44);
         lighting gouraud;
         camlight('headlight');        

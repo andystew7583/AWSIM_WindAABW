@@ -10,6 +10,7 @@ constants;
 
 %%% Directory to store runs
 local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM_WindAABW/runs';
+prod_dir = fullfile('./products');
 
 %%% Spinup simulations are long and produce no diagnostic, diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
@@ -129,6 +130,7 @@ axpos(3,:) = [0.12 0.05 .84 .28];
 axlabels = {'(a)','(b)','(c)'};
 lab_size = [0.05 0.03];
 tau_ticks = [0.01 0.017 0.03 0.05 0.1 0.17 0.3 0.5];
+% tau_ticks = [0:0.05:0.5];
 rho0 = 1000;
 
 defaultcolororder = get(gca,'ColorOrder');
@@ -150,6 +152,7 @@ set(gcf,'Position',[382   306   500   1000]);
 subplot('Position',axpos(1,:));
 for n_Cd=1:N_Cd
   semilogx(tau_mean,Ttot(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
+%   plot(tau_mean,Ttot(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end
@@ -169,6 +172,7 @@ annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)',
 subplot('Position',axpos(2,:));
 for n_Cd=1:N_Cd
   semilogx(tau_mean,Tbt(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
+%   plot(tau_mean,Tbt(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end
@@ -193,6 +197,7 @@ annotation('textbox',[axpos(2,1)-0.105 axpos(2,2)-0.04 lab_size],'String','(b)',
 subplot('Position',axpos(3,:));
 for n_Cd=1:N_Cd
   semilogx(tau_mean,Tbc(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
+%   plot(tau_mean,Tbc(n_Cd,:)/1e6,'o-','Color',colororder(n_Cd,:),'Marker',markershapes{n_Cd},'MarkerFaceColor',colororder(n_Cd,:));
   if (n_Cd == 1)
   hold on;
   end
@@ -301,8 +306,8 @@ for n_Cd=1:N_Cd
   hold on;
   end
 end
-% loglog(tau_mean(7:10),150*(tau_mean(7:10)/0.05).^.4,'k--');
-loglog(tau_mean(7:10),600*(tau_mean(7:10)/0.1).^.6,'k--');
+loglog(tau_mean(7:10),150*(tau_mean(7:10)/0.05).^.8,'k--');
+loglog(tau_mean(7:10),600*(tau_mean(7:10)/0.1).^.5,'k--');
 hold off;
 % xlabel('Wind Stress (N/m^2)');
 ylabel('Transient eddy diffusivity (m^2/s)');
@@ -311,9 +316,13 @@ set(gca,'XLim',[0 0.5]);
 set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(1,1)-0.105 axpos(1,2)-0.04 lab_size],'String','(a)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
-% text(0.075,100,'$\tau^{0.25}$','interpreter','latex','FontSize',fontsize);
-text(0.07,600,'$\tau^{0.6}$','interpreter','latex','FontSize',fontsize);
-
+text(0.075,150,'$\tau^{0.8}$','interpreter','latex','FontSize',fontsize);
+text(0.07,600,'$\tau^{0.5}$','interpreter','latex','FontSize',fontsize);
+% 
+% %%% Uncomment to print linear fits
+% for n_Cd=1:N_Cd
+% p = polyfit(log10(tau_mean(5:end)),log10(kap(n_Cd,5:end)),1)
+% end
 
 
 %%% Make figure
@@ -353,7 +362,8 @@ for n_Cd=1:N_Cd
   end
 end
 loglog(tau_mean(7:10),1.5e-3*(tau_mean(7:10)/0.1).^1,'k--');
-loglog(tau_mean,0.1875*tau_mean,'k:');
+loglog(tau_mean(7:10),5e-4*(tau_mean(7:10)/0.1).^1.2,'k--');
+% loglog(tau_mean,0.1875*tau_mean,'k:');
 hold off;
 xlabel('Wind Stress (N/m^2)');
 ylabel('Standing wave kinetic energy (m^2/s^2)');
@@ -363,7 +373,32 @@ set(gca,'FontSize',fontsize);
 grid on;
 annotation('textbox',[axpos(3,1)-0.105 axpos(3,2)-0.04 lab_size],'String','(c)','interpreter','latex','FontSize',fontsize+2,'LineStyle','None');
 text(0.07,1.5e-3,'$\tau^1$','interpreter','latex','FontSize',fontsize);
+text(0.07,2e-4,'$\tau^{1.2}$','interpreter','latex','FontSize',fontsize);
 
+
+%%% Uncomment to print linear fits
+for n_Cd=1:N_Cd
+  p = polyfit(log10(tau_mean(5:end)),log10(SKE_tot(n_Cd,5:end)),1)
+end
+
+
+
+Nstats = 100;
+pstat = zeros(1,Nstats);
+for n=1:Nstats
+  the_noise = 1+(rand(N_Cd,N_tm)-1)/2.5;
+  kap_noise = kap.*the_noise;
+  %%% Uncomment to print linear fits
+  pp = zeros(1,N_Cd);
+  for n_Cd=1:N_Cd
+    p = polyfit(log10(tau_mean(5:end)),log10(kap_noise(n_Cd,5:end)),1);
+    pp(n_Cd) = p(1);
+  end
+  pstat(n) = mean(pp);
+end
+
+mean(pstat)
+std(pstat)
 
 % 
 % %%% Make figure
