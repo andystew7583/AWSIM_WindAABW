@@ -72,6 +72,32 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         ylabel('y (km)');                   
         set(gca,'FontSize',14);
         
+      %%% Histogram of relative vorticity
+      case 'zh'                
+        
+        %%% Load u
+        data_file = fullfile(dirpath,[OUTN_U,num2str(layer-1),'_n=',num2str(n),'.dat']);
+        uu = readOutputFile(data_file,Nx,Ny);
+        
+        %%% Load v
+        data_file = fullfile(dirpath,[OUTN_V,num2str(layer-1),'_n=',num2str(n),'.dat']);
+        vv = readOutputFile(data_file,Nx,Ny);            
+        
+                     
+        %%% Calculate the relative vorticity
+        zeta = zeros(Nx+1,Ny+1);            
+        zeta(2:Nx,2:Ny) = (uu(1:Nx-1,1:Ny-1)-uu(1:Nx-1,2:Ny)) / dy + (vv(2:Nx,2:Ny)-vv(1:Nx-1,2:Ny)) / dx;                      
+        if (~useWallNS)
+          zeta(:,Ny+1) = zeta(:,1);
+        end
+        zeta(Nx+1,:) = zeta(1,:);
+        Ro = zeta./(2*Omega_z);        
+
+        %%% Make the plot
+        skewness(Ro(:))
+        histogram(Ro(:),100);  
+        set(gca,'YScale','log')
+        
       %%% Contour plot of potential vorticity
       case 'pv'
         
