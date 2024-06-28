@@ -6,8 +6,8 @@
 
 %%% Options
 % run_name = 'ACC_AABW_ML_doubleMOC'; %%% Run to analyze
-run_name = 'ACC_AABW_ML_randWdia_randTau_white'; %%% Run to analyze
-% run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
+% run_name = 'ACC_AABW_ML_randWdia_randTau_white'; %%% Run to analyze
+run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
 t1year = 86400*365;
 rho0=1000;
 tmin = 50*t1year; %%% Actual analysis period

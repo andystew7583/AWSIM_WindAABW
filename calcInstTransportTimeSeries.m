@@ -5,7 +5,8 @@
 %%%
 
 %%% Run to load
-run_name = 'ACC_AABW_ML_doubleMOC_hires';
+run_name = 'ACC_AABW_ML_doubleMOC';
+% run_name = 'ACC_AABW_ML_doubleMOC_hires';
 % run_name = 'ACC_AABW_ML_randWdia_randTau_white_Nlay2'; %%% Run to analyze
 
 %%% Load parameters   
