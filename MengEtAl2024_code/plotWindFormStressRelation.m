@@ -76,8 +76,9 @@ Q = imag(tau_fft.*conj(tfs_fft));
 Stau = tau_fft.*conj(tau_fft);
 Stfs = tfs_fft.*conj(tfs_fft);
 gamma = (C.^2 + Q.^2) ./ (Stau.*Stfs);
+C(1) = 0;
 figure(5);
-semilogx(TT/t1year,gamma,'.');
+semilogx(TT/t1year,C,'.');
 
 covar = 0.5*(tau_fft.*conj(tfs_fft)+conj(tau_fft).*tfs_fft);
 covar = 2*covar(1:end/2); %%% Cut off half of wavenumbers, multiply by 2 to compensate
