@@ -5,7 +5,9 @@
 %%%
 
 %%% Run to load
-run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E10_spinup';
+% run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0.075_tauF45.625_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E7_diags';
+% run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM1.5_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E9_spinup';
+run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E9_diags';
 
 
 %%% Load parameters   
@@ -17,7 +19,8 @@ gtild = reshape(cumsum(gg),[Nlay 1 1]);
 rho0 = 1000;
 
 %%% Max time at which to load transports
-tend = 69*t1year;
+% tend = 0.6*t1year;
+tend = 22*t1year;
 
 %%% Set true to use time-averaged momentum budget diagnostics. This will
 %%% only work if those diagnostics are available!
@@ -83,11 +86,18 @@ Niters = length(iters);
 %%% At each time iteration...
 cntr = 0;  
 formStress = zeros(Nlay,Niters);
+MOC = zeros(Nlay,Niters);
+surfStress = zeros(1,Niters);
+formStress_mid = zeros(Nlay,Niters);
+MOC_mid = zeros(Nlay,Niters);
+surfStress_mid = zeros(1,Niters);
 h = zeros(Nlay,Nx,Ny);
 v = zeros(Nlay,Nx,Ny);
 u = zeros(Nlay,Nx,Ny);
 M = zeros(Nlay,Nx,Ny);
 hdMdx = zeros(Nlay,Nx,Ny);
+taux = zeros(Nlay,Nx,Ny);
+hv = zeros(Nlay,Nx,Ny);
 eta = zeros(Nlay+1,Nx,Ny);
 pi = zeros(Nx,Ny);  
 for n=1:Niters
@@ -101,7 +111,16 @@ for n=1:Niters
     for k=1:Nlay
       data_file = fullfile(dirpath,[OUTN_UMOM_GRADM,num2str(k-1),'_n=',num2str(n),'.dat']);
       hdMdx(k,:,:) = readOutputFile(data_file,Nx,Ny);
+      data_file = fullfile(dirpath,[OUTN_UMOM_WIND,num2str(k-1),'_n=',num2str(n),'.dat']);
+      taux(k,:,:) = readOutputFile(data_file,Nx,Ny);
+      data_file = fullfile(dirpath,[OUTN_HV_AVG,num2str(k-1),'_n=',num2str(n),'.dat']);
+      hv(k,:,:) = readOutputFile(data_file,Nx,Ny);
     end
+    
+    surfStress(n) = sum(sum(sum(taux*dx*dy*rho0)));
+    surfStress_mid(n) = sum(sum(taux(:,:,Ny/2)*dx*rho0));
+    MOC(:,n) = mean(sum(hv*dx,2),3);
+    MOC_mid(:,n) = sum(hv(:,:,Ny/2)*dx,2);
     
   else
     
@@ -145,12 +164,14 @@ for n=1:Niters
     
   %%% Form stress
   hdMdx_int = squeeze(sum(sum(hdMdx,2),3)*dx*dy*rho0);
-  formStress(:,n) = cumsum(hdMdx_int,1);
+  formStress(:,n) = -cumsum(hdMdx_int,1);
+  hdMdx_int = squeeze(sum(hdMdx(:,:,Ny/2),2)*dx*rho0);
+  formStress_mid(:,n) = -cumsum(hdMdx_int,1);
 
 end
 
 %%% For cases with steady forcing
-if (tauPeriod == 0)
+if (~use_avg_diags && tauPeriod == 0)
   tauTimes = tt;
   tauInt = tauInt(1)*ones(size(tt));
 end
@@ -160,12 +181,52 @@ save(fullfile(prod_dir,[run_name,'_MomBalance.mat']), ...
   'wDiaTimes','wDiaInt', ...
   'tauTimes','tauInt', ...
   'XX_h','YY_h','hhb','gg', ...
-  'tt','formStress', ...
+  'tt','formStress','surfStress','MOC', ...
+  'tt','formStress_mid','surfStress_mid','MOC_mid', ...
   '-v7.3');
 
 %%% Sample plot
 figure(1);
-plot(tt/t1year,tauInt/Lx/Ly);
+plot(tt/t1year,surfStress/Lx/Ly);
 hold on;
-plot(tt/t1year,formStress/Lx/Ly);
+plot(tt/t1year,formStress(1,:)/Lx/Ly);
+plot(tt/t1year,formStress(2,:)/Lx/Ly);
+plot(tt/t1year,formStress(3,:)/Lx/Ly);
 hold off;
+legend('Surface stress','IFS_u_p_p_e_r','IFS_l_o_w_e_r','TFS');
+title('Momentum balance, channel-averaged');
+
+f0 = 2*mean(Omega_z(:));
+%%% Sample plot
+figure(2);
+plot(tt/t1year,surfStress/Ly/rho0/abs(f0)/1e6);
+hold on;
+plot(tt/t1year,MOC(1,:)/1e6);
+plot(tt/t1year,MOC(2,:)/1e6);
+plot(tt/t1year,MOC(3,:)/1e6);
+hold off;
+legend('T_E_k_m_a_n','T_1','T_2','T_3');
+title('Overturning, channel-averaged');
+
+%%% Sample plot
+figure(3);
+plot(tt/t1year,surfStress_mid/Lx);
+hold on;
+plot(tt/t1year,formStress_mid(1,:)/Lx);
+plot(tt/t1year,formStress_mid(2,:)/Lx);
+plot(tt/t1year,formStress_mid(3,:)/Lx);
+hold off;
+legend('Surface stress','IFS_u_p_p_e_r','IFS_l_o_w_e_r','TFS');
+title('Momentum balance in channel center');
+
+
+%%% Sample plot
+figure(4);
+plot(tt/t1year,surfStress_mid/rho0/abs(f0)/1e6);
+hold on;
+plot(tt/t1year,MOC_mid(1,:)/1e6);
+plot(tt/t1year,MOC_mid(2,:)/1e6);
+plot(tt/t1year,MOC_mid(3,:)/1e6);
+hold off;
+legend('T_E_k_m_a_n','T_1','T_2','T_3');
+title('Overturning in channel center');

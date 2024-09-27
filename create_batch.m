@@ -23,6 +23,10 @@ cluster_home_dir = '/jbod/astewart/AWSIM_WindAABW/runs_varywind';
 %%% period
 is_spinup = true;
 
+%%% For non-spinup runs (i.e. production runs), start from the end of a
+%%% corresponding spinup run with no time-variation in the forcing
+start_from_steady_forcing = true;
+
 %%% Set true to extend a previous run
 extend_run = false;
 
@@ -32,8 +36,12 @@ Nlay = 3;
 
 %%% N.B. Batches run so far:
 %%%
-%%% N=128, steady wind with tau=0.15, 10 ensemble members
-%%% spinup run
+%%% N=128, steady wind with tau=0.15, no rough topog, 10 ensemble members
+%%% spinup runs
+%%% N=128, steady wind with tau=0.15, Taabw=1.5, no rough topog, 10 ensemble members
+%%% spinup runs
+%%% N=128, oscillating wind with tau=0.15, dtau=0.075, no rough topog, 10 ensemble members
+%%% production runs
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Parameter selection %%%
@@ -49,7 +57,7 @@ Nlay = 3;
 % topog_width = 150;
 % topog_height = 1000;
 
-%%% Perturbation values
+%%% Steady forcing ensemble with rough topography
 Nensemble = 10;
 tau_mean = [0.15];
 tau_pert = 0;
@@ -61,14 +69,49 @@ quad_drag = 2e-3;
 lin_drag = 0e-4;  
 topog_width = 150;
 topog_height = 1000;
+rough_topog = true;
 
-%%% Wind perturbation batch
-% tau_mean = [0 0.05 0.1 0.15 0.2];
-% tau_pert = [0.05 0.1];
-% tau_freq = t1day*[1 3 10 30 100 t1year 3*t1year 10*t1year 30*t1year];
+%%% Perturbation values
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0.075;
+% tau_freq = t1year .* 2.^[-3:1:4];
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+
+%%% Steady forcing ensemble
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+
+%%% Steady forcing ensemble plus AABW
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
 % AABW_mean = 1.5;
 % AABW_pert = 0;
 % AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
 
 %%% Script files
 run_batch_fname = 'run_batch.sh';
@@ -96,7 +139,7 @@ for n_tm=1:length(tau_mean)
                       run_name = constructRunName (is_spinup,Ny,Nlay, ...
                                   tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                                   AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),n_E);
+                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
 
                       %%% Identify previous simulation from which to copy the restart file
                       if (is_spinup)
@@ -137,7 +180,7 @@ for n_tm=1:length(tau_mean)
                             run_name_pickup = constructRunName (true,Ny/2,Nlay, ...
                                     tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                                     AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                                    quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),n_E);
+                                    quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
                             pickup_iter = findLastOutput(dir_pickup,run_name_pickup);        
                             restart_idx = 0;
                             end_time = 100*t1year;
@@ -148,15 +191,23 @@ for n_tm=1:length(tau_mean)
                       %%% Diagnostic runs start from the end of the corresponding
                       %%% spinup runs
                       else
-
+                        
                         dir_pickup = local_home_dir;
-                        run_name_pickup = constructRunName (true,Ny,Nlay, ...
-                                  tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
-                                  AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),n_E);
+                        
+                        if (start_from_steady_forcing)
+                          run_name_pickup = constructRunName (true,Ny,Nlay, ...
+                                  tau_mean(n_tm),0,0, ...
+                                  AABW_mean(n_am),0,0, ...
+                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
+                        else                        
+                          run_name_pickup = constructRunName (true,Ny,Nlay, ...
+                                    tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
+                                    AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
+                                    quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
+                        end
                         pickup_iter = findLastOutput(dir_pickup,run_name_pickup);    
                         restart_idx = 0;
-                        end_time = 30*t1year;
+                        end_time = 30*t1year; %%% Default - only used for steady simulations
 
                       end
 
@@ -164,7 +215,7 @@ for n_tm=1:length(tau_mean)
                       setparams (local_home_dir,run_name,is_spinup,Ny,Nlay, ...
                                   tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                                   AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb), ...
+                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog, ...
                                   restart_idx, end_time);
 
                       %%% Copy/regrid pickup files to the simulation directory

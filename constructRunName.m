@@ -7,7 +7,7 @@ function run_name = constructRunName ( ...
     is_spinup,grid_size,num_layers, ...
     tau_mean,tau_pert,tau_freq, ...
     AABW_mean,AABW_pert,AABW_freq, ...
-    quad_drag,lin_drag,topog_width,topog_height,ensemble_id)
+    quad_drag,lin_drag,topog_width,topog_height,rough_topog,ensemble_id)
 
   %%% Load definitions
   constants;
@@ -33,6 +33,9 @@ function run_name = constructRunName ( ...
   end  
   if (topog_height ~= 1000)
     run_name = [run_name,'_Hb',num2str(topog_height)];
+  end  
+  if (rough_topog)
+    run_name = [run_name,'_rough'];
   end  
   run_name = [run_name,'_E',num2str(ensemble_id)];
   

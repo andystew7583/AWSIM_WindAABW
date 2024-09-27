@@ -20,6 +20,7 @@
 %%% lin_drag        Linear drag coefficient (m/s)
 %%% topog_width     Zonal width of topographic bump in km
 %%% topog_height    Height of topographic bump in m
+%%% rough_topog     Set true to add random bathymetry
 %%% restart_index   Index of the output file used to restart the run
 %%% end_time        Simulation end time (s)
 %%% 
@@ -28,7 +29,7 @@ function setparams (local_home_dir,run_name, ...
   tau_mean,tau_pert,tau_freq, ...
   AABW_mean,AABW_pert,AABW_freq, ...
   quad_drag, lin_drag, topog_width, ...
-  topog_height,restart_index, end_time)
+  topog_height,rough_topog,restart_index, end_time)
 
   %%% Set true to run with random forcing, rather than periodic forcing.
   random_forcing = false;
@@ -81,7 +82,7 @@ function setparams (local_home_dir,run_name, ...
   if (Nlay == 3)
     geff = [g .5e-2 .2e-2];        
   end
-  h0 = 0;                       %%% Salmon layer thickness
+  h0 = 0;                       %%% Salmon layer thickness  
   if ((topog_width==150) && (topog_height==1000))
     Xb = 1000*m1km;               %%% Zonal position of topography  
   else
@@ -124,8 +125,8 @@ function setparams (local_home_dir,run_name, ...
 %   tauNrecs = 1;            %%% Number of temporal wind stress records to write  
   
   %%% Time-varying buoyancy forcing parameters
-  Psi0_upper = 0e6;                   %%% Imposed AAIW formation and export (reference value 1.5 Sv)
-  dPsi0_upper = 0.5e6;                  %%% Amplitude of AAIW export fluctuations (reference value 0.5 Sv)
+  Psi0_upper = AABW_mean*1e6;                   %%% Imposed AAIW formation and export (reference value 1.5 Sv)
+  dPsi0_upper = AABW_pert*1e6;                  %%% Amplitude of AAIW export fluctuations (reference value 0.5 Sv)
   Psi0_lower = AABW_mean*1e6;                   %%% Imposed AABW formation and export (reference value 1.5 Sv)
   dPsi0_lower = AABW_pert*1e6;                  %%% Amplitude of AABW export fluctuations (reference value 0.5 Sv)
   wDiaPeriod = AABW_freq;               %%% Diapycnal velocity period (reference value (reference value 500 years)                
@@ -236,6 +237,12 @@ function setparams (local_home_dir,run_name, ...
   
   %%% Latitudinal bottom slope 
   etab = etab + (beta_t*H/f0)*(YY_h-(Ly/2));
+  
+  %%% Add random topographic variations
+  if (rough_topog)
+    etab_rough = -genBathy(400*m1km,0,200,-3,Nx,Ny,Lx,Ly); 
+    etab = etab + etab_rough.*(-etab/H);
+  end
   
   %%% Plot topography
   figure(10);
