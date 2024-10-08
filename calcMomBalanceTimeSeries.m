@@ -4,10 +4,27 @@
 %%% Computes time series of wind stress and form stresses.
 %%%
 
-%%% Run to load
-% run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0.075_tauF45.625_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E7_diags';
-% run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM1.5_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E9_spinup';
-run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E9_diags';
+%%% Load constant parameters
+constants;
+
+Nensemble = 10;
+tau_mean = [0.15];
+tau_pert = 0.075;
+tau_freq = t1year * 2^0;
+AABW_mean = 1.5;
+AABW_pert = 0;
+AABW_freq = 0;
+quad_drag = 2e-3;
+lin_drag = 0e-4;  
+topog_width = 150;
+topog_height = 1000;
+rough_topog = false;
+n_E = 1;
+run_name = constructRunName (false,Ny,Nlay, ...
+                                  tau_mean,tau_pert,tau_freq, ...
+                                  AABW_mean,AABW_pert,AABW_freq, ...
+                                  quad_drag,lin_drag,topog_width,topog_height,rough_topog,n_E);
+
 
 
 %%% Load parameters   
@@ -20,11 +37,11 @@ rho0 = 1000;
 
 %%% Max time at which to load transports
 % tend = 0.6*t1year;
-tend = 22*t1year;
+tend = 40*t1year;
 
 %%% Set true to use time-averaged momentum budget diagnostics. This will
 %%% only work if those diagnostics are available!
-use_avg_diags = false;
+use_avg_diags = true;
 
 
 
@@ -91,6 +108,9 @@ surfStress = zeros(1,Niters);
 formStress_mid = zeros(Nlay,Niters);
 MOC_mid = zeros(Nlay,Niters);
 surfStress_mid = zeros(1,Niters);
+Tacc = zeros(1,Niters);
+Tacc_bc = zeros(1,Niters);
+Tacc_bt = zeros(1,Niters);
 h = zeros(Nlay,Nx,Ny);
 v = zeros(Nlay,Nx,Ny);
 u = zeros(Nlay,Nx,Ny);
@@ -98,6 +118,8 @@ M = zeros(Nlay,Nx,Ny);
 hdMdx = zeros(Nlay,Nx,Ny);
 taux = zeros(Nlay,Nx,Ny);
 hv = zeros(Nlay,Nx,Ny);
+hu = zeros(Nlay,Nx,Ny);
+u = zeros(Nlay,Nx,Ny);
 eta = zeros(Nlay+1,Nx,Ny);
 pi = zeros(Nx,Ny);  
 for n=1:Niters
@@ -115,12 +137,21 @@ for n=1:Niters
       taux(k,:,:) = readOutputFile(data_file,Nx,Ny);
       data_file = fullfile(dirpath,[OUTN_HV_AVG,num2str(k-1),'_n=',num2str(n),'.dat']);
       hv(k,:,:) = readOutputFile(data_file,Nx,Ny);
+      data_file = fullfile(dirpath,[OUTN_HU_AVG,num2str(k-1),'_n=',num2str(n),'.dat']);
+      hu(k,:,:) = readOutputFile(data_file,Nx,Ny);
+      data_file = fullfile(dirpath,[OUTN_U_AVG,num2str(k-1),'_n=',num2str(n),'.dat']);
+      u(k,:,:) = readOutputFile(data_file,Nx,Ny);
     end
     
     surfStress(n) = sum(sum(sum(taux*dx*dy*rho0)));
-    surfStress_mid(n) = sum(sum(taux(:,:,Ny/2)*dx*rho0));
+    surfStress_mid(n) = sum(sum(sum(taux(:,:,Ny/4:3*Ny/4)*dy*dx*rho0)));
     MOC(:,n) = mean(sum(hv*dx,2),3);
-    MOC_mid(:,n) = sum(hv(:,:,Ny/2)*dx,2);
+    MOC_mid(:,n) = mean(sum(hv(:,:,Ny/4:3*Ny/4)*dx,2),3);
+    
+    Tacc(n) = sum(sum(hu(:,1,:)*dy,3),1);
+    Tacc_bt_tmp = sum(squeeze(u(Nlay,:,:)).*(-hhb)*dy,2);
+    Tacc_bt(n) = mean(Tacc_bt_tmp);
+    Tacc_bc(n) = Tacc(n) - Tacc_bt(n);
     
   else
     
@@ -165,7 +196,7 @@ for n=1:Niters
   %%% Form stress
   hdMdx_int = squeeze(sum(sum(hdMdx,2),3)*dx*dy*rho0);
   formStress(:,n) = -cumsum(hdMdx_int,1);
-  hdMdx_int = squeeze(sum(hdMdx(:,:,Ny/2),2)*dx*rho0);
+  hdMdx_int = squeeze(sum(sum(hdMdx(:,:,Ny/4:3*Ny/4),2),3)*dx*dy*rho0);
   formStress_mid(:,n) = -cumsum(hdMdx_int,1);
 
 end
@@ -182,7 +213,8 @@ save(fullfile(prod_dir,[run_name,'_MomBalance.mat']), ...
   'tauTimes','tauInt', ...
   'XX_h','YY_h','hhb','gg', ...
   'tt','formStress','surfStress','MOC', ...
-  'tt','formStress_mid','surfStress_mid','MOC_mid', ...
+  'formStress_mid','surfStress_mid','MOC_mid', ...
+  'Tacc','Tacc_bt','Tacc_bc', ...
   '-v7.3');
 
 %%% Sample plot
@@ -210,11 +242,11 @@ title('Overturning, channel-averaged');
 
 %%% Sample plot
 figure(3);
-plot(tt/t1year,surfStress_mid/Lx);
+plot(tt/t1year,surfStress_mid/Lx/(Ly/2));
 hold on;
-plot(tt/t1year,formStress_mid(1,:)/Lx);
-plot(tt/t1year,formStress_mid(2,:)/Lx);
-plot(tt/t1year,formStress_mid(3,:)/Lx);
+plot(tt/t1year,formStress_mid(1,:)/Lx/(Ly/2));
+plot(tt/t1year,formStress_mid(2,:)/Lx/(Ly/2));
+plot(tt/t1year,formStress_mid(3,:)/Lx/(Ly/2));
 hold off;
 legend('Surface stress','IFS_u_p_p_e_r','IFS_l_o_w_e_r','TFS');
 title('Momentum balance in channel center');
@@ -222,11 +254,21 @@ title('Momentum balance in channel center');
 
 %%% Sample plot
 figure(4);
-plot(tt/t1year,surfStress_mid/rho0/abs(f0)/1e6);
+plot(tt/t1year,surfStress_mid/(Ly/2)/rho0/abs(f0)/1e6);
 hold on;
 plot(tt/t1year,MOC_mid(1,:)/1e6);
 plot(tt/t1year,MOC_mid(2,:)/1e6);
 plot(tt/t1year,MOC_mid(3,:)/1e6);
 hold off;
 legend('T_E_k_m_a_n','T_1','T_2','T_3');
-title('Overturning in channel center');
+title('Overturning, channel center');
+
+%%% Sample plot
+figure(5);
+plot(tt/t1year,Tacc/1e6);
+hold on;
+plot(tt/t1year,Tacc_bc/1e6);
+plot(tt/t1year,Tacc_bt/1e6);
+hold off;
+legend('Total transport','Baroclinic transport','Barotropic transport');
+title('ACC transport');

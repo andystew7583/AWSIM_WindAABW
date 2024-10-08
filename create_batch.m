@@ -57,21 +57,35 @@ Nlay = 3;
 % topog_width = 150;
 % topog_height = 1000;
 
-%%% Steady forcing ensemble with rough topography
-Nensemble = 10;
-tau_mean = [0.15];
-tau_pert = 0;
-tau_freq = 0;
-AABW_mean = 0;
-AABW_pert = 0;
-AABW_freq = 0;
-quad_drag = 2e-3;
-lin_drag = 0e-4;  
-topog_width = 150;
-topog_height = 1000;
-rough_topog = true;
+%%% Perturbation ensemble with rough topography
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0.075;
+% tau_freq = t1year .* 2.^[-3:1:4];
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = true;
 
-%%% Perturbation values
+%%% Steady forcing ensemble with rough topography
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = true;
+
+%%% Perturbation ensemble with smooth topography
 % Nensemble = 10;
 % tau_mean = [0.15];
 % tau_pert = 0.075;
@@ -85,7 +99,7 @@ rough_topog = true;
 % topog_height = 1000;
 % rough_topog = false;
 
-%%% Steady forcing ensemble
+%%% Steady forcing ensemble with smooth topography
 % Nensemble = 10;
 % tau_mean = [0.15];
 % tau_pert = 0;
@@ -99,7 +113,21 @@ rough_topog = true;
 % topog_height = 1000;
 % rough_topog = false;
 
-%%% Steady forcing ensemble plus AABW
+%%% Perturbation ensemble with smooth topography plus AABW
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0.075;
+% tau_freq = t1year .* 2.^[-3:1:4];
+% AABW_mean = 1.5;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+
+%%% Steady forcing ensemble with smooth topography plus AABW
 % Nensemble = 10;
 % tau_mean = [0.15];
 % tau_pert = 0;
@@ -112,6 +140,21 @@ rough_topog = true;
 % topog_width = 150;
 % topog_height = 1000;
 % rough_topog = false;
+
+%%% Steady forcing ensemble with rough topography plus AABW
+Nensemble = 10;
+tau_mean = [0.15];
+tau_pert = 0;
+tau_freq = 0;
+AABW_mean = 1.5;
+AABW_pert = 0;
+AABW_freq = 0;
+quad_drag = 2e-3;
+lin_drag = 0e-4;  
+topog_width = 150;
+topog_height = 1000;
+rough_topog = true;
+
 
 %%% Script files
 run_batch_fname = 'run_batch.sh';
@@ -212,6 +255,7 @@ for n_tm=1:length(tau_mean)
                       end
 
                       %%% Create simulation directory and input files
+                      rng(n_E)
                       setparams (local_home_dir,run_name,is_spinup,Ny,Nlay, ...
                                   tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                                   AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...

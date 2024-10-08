@@ -235,14 +235,14 @@ function setparams (local_home_dir,run_name, ...
   etab = Hb*exp(-((XX_h-Xb)/Wb).^2);
   etab = etab - H;
   
-  %%% Latitudinal bottom slope 
-  etab = etab + (beta_t*H/f0)*(YY_h-(Ly/2));
-  
   %%% Add random topographic variations
   if (rough_topog)
-    etab_rough = -genBathy(400*m1km,0,200,-3,Nx,Ny,Lx,Ly); 
-    etab = etab + etab_rough.*(-etab/H);
+    etab_rough = -genBathy(400*m1km,0,150,-3,Nx,Ny,Lx,Ly); 
+    etab = etab + etab_rough.*(0.25 + 0.75*(-H+Hb - etab)/Hb);
   end
+  
+  %%% Latitudinal bottom slope 
+  etab = etab + (beta_t*H/f0)*(YY_h-(Ly/2));
   
   %%% Plot topography
   figure(10);
