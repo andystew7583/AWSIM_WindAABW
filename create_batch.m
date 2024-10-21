@@ -21,7 +21,7 @@ cluster_home_dir = '/jbod/astewart/AWSIM_WindAABW/runs_varywind';
 %%% Spinup simulations are long and produce no diagnostics; diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
 %%% period
-is_spinup = true;
+is_spinup = false;
 
 %%% For non-spinup runs (i.e. production runs), start from the end of a
 %%% corresponding spinup run with no time-variation in the forcing
@@ -141,11 +141,11 @@ Nlay = 3;
 % topog_height = 1000;
 % rough_topog = false;
 
-%%% Steady forcing ensemble with rough topography plus AABW
+%%% Perturbation ensemble with rough topography plus AABW
 Nensemble = 10;
 tau_mean = [0.15];
-tau_pert = 0;
-tau_freq = 0;
+tau_pert = 0.075;
+tau_freq = t1year .* 2.^[-3:1:4];
 AABW_mean = 1.5;
 AABW_pert = 0;
 AABW_freq = 0;
@@ -154,6 +154,20 @@ lin_drag = 0e-4;
 topog_width = 150;
 topog_height = 1000;
 rough_topog = true;
+
+%%% Steady forcing ensemble with rough topography plus AABW
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 1.5;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = true;
 
 
 %%% Script files

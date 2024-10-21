@@ -6,11 +6,9 @@
 
 %%% Load constant parameters
 constants;
-
-Nensemble = 10;
 tau_mean = [0.15];
 tau_pert = 0.075;
-tau_freq = t1year * 2^0;
+tau_freq = t1year * 2^-3;
 AABW_mean = 1.5;
 AABW_pert = 0;
 AABW_freq = 0;
@@ -18,14 +16,14 @@ quad_drag = 2e-3;
 lin_drag = 0e-4;  
 topog_width = 150;
 topog_height = 1000;
-rough_topog = false;
-n_E = 1;
+rough_topog = true;
+n_E = 6;
 run_name = constructRunName (false,Ny,Nlay, ...
                                   tau_mean,tau_pert,tau_freq, ...
                                   AABW_mean,AABW_pert,AABW_freq, ...
                                   quad_drag,lin_drag,topog_width,topog_height,rough_topog,n_E);
 
-
+% run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM1.5_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E1_doublewind';
 
 %%% Load parameters   
 local_home_dir = '/Volumes/Stewart-RAID1-A/UCLA/Projects/AWSIM_WindAABW/runs_varywind';
@@ -37,7 +35,8 @@ rho0 = 1000;
 
 %%% Max time at which to load transports
 % tend = 0.6*t1year;
-tend = 40*t1year;
+% tend = 22*t1year;
+tend = 45*t1year;
 
 %%% Set true to use time-averaged momentum budget diagnostics. This will
 %%% only work if those diagnostics are available!
@@ -227,6 +226,8 @@ plot(tt/t1year,formStress(3,:)/Lx/Ly);
 hold off;
 legend('Surface stress','IFS_u_p_p_e_r','IFS_l_o_w_e_r','TFS');
 title('Momentum balance, channel-averaged');
+xlabel('Time (years)')
+ylabel('N/m^2');
 
 f0 = 2*mean(Omega_z(:));
 %%% Sample plot
@@ -239,6 +240,8 @@ plot(tt/t1year,MOC(3,:)/1e6);
 hold off;
 legend('T_E_k_m_a_n','T_1','T_2','T_3');
 title('Overturning, channel-averaged');
+xlabel('Time (years)')
+ylabel('Sv');
 
 %%% Sample plot
 figure(3);
@@ -250,7 +253,8 @@ plot(tt/t1year,formStress_mid(3,:)/Lx/(Ly/2));
 hold off;
 legend('Surface stress','IFS_u_p_p_e_r','IFS_l_o_w_e_r','TFS');
 title('Momentum balance in channel center');
-
+xlabel('Time (years)')
+ylabel('N/m^2');
 
 %%% Sample plot
 figure(4);
@@ -262,6 +266,8 @@ plot(tt/t1year,MOC_mid(3,:)/1e6);
 hold off;
 legend('T_E_k_m_a_n','T_1','T_2','T_3');
 title('Overturning, channel center');
+xlabel('Time (years)')
+ylabel('Sv');
 
 %%% Sample plot
 figure(5);
@@ -272,3 +278,5 @@ plot(tt/t1year,Tacc_bt/1e6);
 hold off;
 legend('Total transport','Baroclinic transport','Barotropic transport');
 title('ACC transport');
+xlabel('Time (years)')
+ylabel('Sv');
