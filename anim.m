@@ -163,9 +163,11 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         %%% Load h
         data_file = fullfile(dirpath,[OUTN_W,num2str(layer-1),'_n=',num2str(n),'.dat']);
         ww = readOutputFile(data_file,Nx,Ny);    
+        
+        sum(sum(ww(YY_h>Ly/2)*dx*dy))/1e6
     
         %%% Make the plot
-        pcolor(XX_q/1000,YY_q/1000,ww);
+        pcolor(XX_h/1000,YY_h/1000,ww);
         shading interp;
         colorbar;
         title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
@@ -265,7 +267,46 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
         colormap jet;        
 %         caxis([-200 200]);
-       
+
+
+      %%% Plot zonal velocity
+      case 'psibt'
+        
+        %%% Load u and h
+        uu = zeros(Nx,Ny,Nlay);
+        hh = zeros(Nx,Ny,Nlay);
+        for k=1:Nlay
+          data_file = fullfile(dirpath,[OUTN_U,num2str(k-1),'_n=',num2str(n),'.dat']);
+          uu(:,:,k) = readOutputFile(data_file,Nx,Ny);       
+          data_file = fullfile(dirpath,[OUTN_H,num2str(k-1),'_n=',num2str(n),'.dat']);
+          hh(:,:,k) = readOutputFile(data_file,Nx,Ny);       
+        end
+        hu = uu.*0.5.*(hh+hh([Nx 1:Nx-1],:,:));
+        PsiBT = - cumsum(sum(hu,3)*dy,2);
+        
+        ridgeidx = find(xx_h>1000*m1km,1);
+        
+        Tbt = sum(repmat(uu(:,:,Nlay),[1 1 Nlay]).*hh,3);
+        Tbt = sum(Tbt*dy,2);
+%         Tbt = mean(Tbt) / 1e6;
+%         Tbt = Tbt(ridgeidx)/1e6;
+        
+        Ttot = mean(-PsiBT(:,end))/1e6;
+        
+        disp([Ttot,mean(Tbt)/1e6,std(Tbt)/1e6]);
+    
+        %%% Make the plot
+        pcolor(XX_u/1000,YY_u/1000,PsiBT/1e6);        
+        shading interp;
+        hold on
+        [C,h] = contour(XX_h/1000,YY_h/1000,hhb,[-4000:500:-1000 -750],'EdgeColor','k');
+        clabel(C,h);
+        hold off;
+        colorbar;
+        title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
+        colormap(cmocean('balance'));        
+        caxis([-max(max(abs(PsiBT))) max(max(abs(PsiBT)))]/1e6);
+        
 
       %%% Plot zonal velocity
       case 'u'
@@ -444,7 +485,7 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
 %         colormap haxby;
 %         caxis([-.3 .3]);
 %         caxis([0 .5]);
-        caxis([-1e-7 -4e-8]);
+        caxis([-2e-7 -6e-8]);
 %         caxis([-.3 .3]);
         p.EdgeColor = 'none';         
         alpha(p,1);
@@ -454,11 +495,11 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         p.FaceColor = [48 129 238]/256;
         p.EdgeColor = 'none';        
         alpha(p,0.7);
-%         eta_plot = eta(:,:,3);
-%         p = surface(XX_h/1000,YY_h/1000,eta_plot);
-%         p.FaceColor = [24 60 139]/256;
-%         p.EdgeColor = 'none';        
-%         alpha(p,0.7);
+        eta_plot = eta(:,:,3);
+        p = surface(XX_h/1000,YY_h/1000,eta_plot);
+        p.FaceColor = [24 60 139]/256;
+        p.EdgeColor = 'none';        
+        alpha(p,0.7);
         p = surface(XX_h/1000,YY_h/1000,eta(:,:,Nlay+1));
         p.FaceColor = [139,69,19]/256;
         p.EdgeColor = 'none';          
