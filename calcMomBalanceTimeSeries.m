@@ -6,10 +6,13 @@
 
 %%% Load constant parameters
 constants;
+Ny = 128;
+Nlay = 3;
 tau_mean = [0.15];
 tau_pert = 0.075;
-tau_freq = t1year * 2^-3;
-AABW_mean = 1.5;
+tau_freq = t1year * 2^0;
+% AABW_mean = 1.5;
+AABW_mean = 0;
 AABW_pert = 0;
 AABW_freq = 0;
 quad_drag = 2e-3;
@@ -17,7 +20,7 @@ lin_drag = 0e-4;
 topog_width = 150;
 topog_height = 1000;
 rough_topog = true;
-n_E = 6;
+n_E = 10;
 run_name = constructRunName (false,Ny,Nlay, ...
                                   tau_mean,tau_pert,tau_freq, ...
                                   AABW_mean,AABW_pert,AABW_freq, ...
@@ -36,7 +39,7 @@ rho0 = 1000;
 %%% Max time at which to load transports
 % tend = 0.6*t1year;
 % tend = 22*t1year;
-tend = 45*t1year;
+tend = 160*t1year;
 
 %%% Set true to use time-averaged momentum budget diagnostics. This will
 %%% only work if those diagnostics are available!
