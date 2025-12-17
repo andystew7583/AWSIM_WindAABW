@@ -9,10 +9,12 @@ constants;
 Ny = 128;
 Nlay = 3;
 tau_mean = [0.15];
-tau_pert = 0.075;
-tau_freq = t1year * 2^0;
-% AABW_mean = 1.5;
-AABW_mean = 0;
+% tau_pert = 0.075;
+tau_pert = 0;
+% tau_freq = t1year * 2^0;
+tau_freq = 0;
+AABW_mean = 1.5;
+% AABW_mean = 0;
 AABW_pert = 0;
 AABW_freq = 0;
 quad_drag = 2e-3;
@@ -20,11 +22,12 @@ lin_drag = 0e-4;
 topog_width = 150;
 topog_height = 1000;
 rough_topog = true;
-n_E = 10;
+double_wind = true;
+n_E = 9;
 run_name = constructRunName (false,Ny,Nlay, ...
                                   tau_mean,tau_pert,tau_freq, ...
                                   AABW_mean,AABW_pert,AABW_freq, ...
-                                  quad_drag,lin_drag,topog_width,topog_height,rough_topog,n_E);
+                                  quad_drag,lin_drag,topog_width,topog_height,rough_topog,double_wind,n_E);
 
 % run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM1.5_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_E1_doublewind';
 

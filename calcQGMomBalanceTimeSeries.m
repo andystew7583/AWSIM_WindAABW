@@ -10,7 +10,7 @@ Ny = 128;
 Nlay = 3;
 tau_mean = [0.15];
 tau_pert = 0.075;
-tau_freq = t1year * 2^0;
+tau_freq = t1year * 2^4;
 % AABW_mean = 1.5;
 AABW_mean = 0;
 AABW_pert = 0;
@@ -19,8 +19,8 @@ quad_drag = 2e-3;
 lin_drag = 0e-4;  
 topog_width = 150;
 topog_height = 1000;
-rough_topog = false;
-n_E = 10;
+rough_topog = true;
+n_E = 2;
 run_name = constructRunName (false,Ny,Nlay, ...
                                   tau_mean,tau_pert,tau_freq, ...
                                   AABW_mean,AABW_pert,AABW_freq, ...
@@ -76,7 +76,7 @@ for n=1:Niters
   disp(Niters)
   
   %%% Load model output fields
-  [pi,hh,eta] = readPiHEta (dirpath,k,n,Nx,Ny,Nlay,hhb,use_avg_diags);
+  [pi,hh,eta] = readPiHEta (dirpath,n,Nx,Ny,Nlay,hhb,use_avg_diags);
 
   %%% Compute QG streamfunction and meridional velocity
   [psig,etag] = calcQGStreamfunction (pi,eta,HH,gg,f0);    
@@ -104,7 +104,7 @@ for n=1:Niters
   disp(Niters)
   
   %%% Load model output fields
-  [pi,hh,eta] = readPiHEta (dirpath,k,n,Nx,Ny,Nlay,hhb,use_avg_diags);
+  [pi,hh,eta] = readPiHEta (dirpath,n,Nx,Ny,Nlay,hhb,use_avg_diags);
 
   %%% Compute QG streamfunction and meridional velocity
   [psig,etag] = calcQGStreamfunction (pi,eta,HH,gg,f0);    
@@ -248,7 +248,7 @@ corr(formStressQG_cavg(3,:)',formStressQG_fixedBT_cavg(3,:)')
 %%% Convenience function to read in needed fields from a given output
 %%% snapshot time.
 %%%
-function [pi,hh,eta] = readPiHEta (dirpath,k,n,Nx,Ny,Nlay,etab,use_avg_diags)
+function [pi,hh,eta] = readPiHEta (dirpath,n,Nx,Ny,Nlay,etab,use_avg_diags)
 
   constants;
 

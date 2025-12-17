@@ -11,12 +11,12 @@ constants;
 local_home_dir = '/Volumes/Stewart-RAID1-A/UCLA/Projects/AWSIM_WindAABW/runs_varywind';
 
 %%% Remote cluster directory
-uname = 'astewart';
-% uname = 'andrewst';
-cluster_addr = 'caolila.atmos.ucla.edu';
-% cluster_addr = 'hoffman2.idre.ucla.edu';
-cluster_home_dir = '/jbod/astewart/AWSIM_WindAABW/runs_varywind';
-% cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
+% uname = 'astewart';
+uname = 'andrewst';
+% cluster_addr = 'lagavulin.atmos.ucla.edu';
+cluster_addr = 'hoffman2.idre.ucla.edu';
+% cluster_home_dir = '/data/jbod/astewart/AWSIM_WindAABW/runs_varywind';
+cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
 
 %%% Spinup simulations are long and produce no diagnostics; diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
@@ -26,6 +26,9 @@ is_spinup = false;
 %%% For non-spinup runs (i.e. production runs), start from the end of a
 %%% corresponding spinup run with no time-variation in the forcing
 start_from_steady_forcing = true;
+
+%%% For wind doubling experiment batches - only for non-spinup runs
+double_wind = true;
 
 %%% Set true to extend a previous run
 extend_run = false;
@@ -169,6 +172,61 @@ Nlay = 3;
 % topog_height = 1000;
 % rough_topog = true;
 
+%%% Wind doubling ensemble
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+
+%%% Wind doubling ensemble with rough topography
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = true;
+
+%%% Wind doubling ensemble with MOC
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 1.5;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+
+%%% Wind doubling ensemble with rough topography and MOC
+Nensemble = 10;
+tau_mean = [0.15];
+tau_pert = 0;
+tau_freq = 0;
+AABW_mean = 1.5;
+AABW_pert = 0;
+AABW_freq = 0;
+quad_drag = 2e-3;
+lin_drag = 0e-4;  
+topog_width = 150;
+topog_height = 1000;
+rough_topog = true;
 
 %%% Script files
 run_batch_fname = 'run_batch.sh';
@@ -196,7 +254,14 @@ for n_tm=1:length(tau_mean)
                       run_name = constructRunName (is_spinup,Ny,Nlay, ...
                                   tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                                   AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
+                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,double_wind,n_E);
+
+                      %%% Apply doubling of mean wind stress if selected
+                      if (double_wind)
+                        tau_mean_new = 2*tau_mean(n_tm);
+                      else
+                        tau_mean_new = tau_mean(n_tm);
+                      end
 
                       %%% Identify previous simulation from which to copy the restart file
                       if (is_spinup)
@@ -237,7 +302,7 @@ for n_tm=1:length(tau_mean)
                             run_name_pickup = constructRunName (true,Ny/2,Nlay, ...
                                     tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                                     AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                                    quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
+                                    quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,false,n_E);
                             pickup_iter = findLastOutput(dir_pickup,run_name_pickup);        
                             restart_idx = 0;
                             end_time = 100*t1year;
@@ -255,12 +320,12 @@ for n_tm=1:length(tau_mean)
                           run_name_pickup = constructRunName (true,Ny,Nlay, ...
                                   tau_mean(n_tm),0,0, ...
                                   AABW_mean(n_am),0,0, ...
-                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
+                                  quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,false,n_E);
                         else                        
                           run_name_pickup = constructRunName (true,Ny,Nlay, ...
                                     tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
                                     AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
-                                    quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,n_E);
+                                    quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog,false,n_E);
                         end
                         pickup_iter = findLastOutput(dir_pickup,run_name_pickup);    
                         restart_idx = 0;
@@ -271,7 +336,7 @@ for n_tm=1:length(tau_mean)
                       %%% Create simulation directory and input files
                       rng(n_E)
                       setparams (local_home_dir,run_name,is_spinup,Ny,Nlay, ...
-                                  tau_mean(n_tm),tau_pert(n_tp),tau_freq(n_tf), ...
+                                  tau_mean_new,tau_pert(n_tp),tau_freq(n_tf), ...
                                   AABW_mean(n_am),AABW_pert(n_ap),AABW_freq(n_af), ...
                                   quad_drag(n_Cd),lin_drag(n_rb),topog_width(n_Wb),topog_height(n_Hb),rough_topog, ...
                                   restart_idx, end_time);

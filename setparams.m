@@ -51,12 +51,12 @@ function setparams (local_home_dir,run_name, ...
   use_cluster = true;
   use_intel = false;
   use_pbs = use_cluster;
-  uname = 'astewart';
-  % uname = 'andrewst';
-  cluster_addr = 'caolila.atmos.ucla.edu';
-  % cluster_addr = 'hoffman2.idre.ucla.edu';
-  cluster_home_dir = '/jbod/astewart/AWSIM_WindAABW/runs_varywind';
-  % cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
+  % uname = 'astewart';
+  uname = 'andrewst';
+  % cluster_addr = 'caolila.atmos.ucla.edu';
+  cluster_addr = 'hoffman2.idre.ucla.edu';
+  % cluster_home_dir = '/jbod/astewart/AWSIM_WindAABW/runs_varywind';
+  cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
   
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,13 +146,21 @@ function setparams (local_home_dir,run_name, ...
       savefreqVMom= -1;
       savefreqThic = -1;     
     else
-      tmax = end_time; 
-%       savefreq = 5*t1day;         
-      savefreq = 1*t1year;   
-      savefreqEZ = 1*t1day;  
-      savefreqAvg = 5*t1year;
-      savefreqUMom = 5*t1year;
-      savefreqVMom= 5*t1year;
+      % tmax = end_time; 
+      % savefreq = 1*t1year;   
+      % savefreqEZ = 1*t1day;  
+      % savefreqAvg = 5*t1year;
+      % savefreqUMom = 5*t1year;
+      % savefreqVMom= 5*t1year;
+      % savefreqThic = -1; 
+
+      %%% For wind doubling experiments
+      tmax = 2*t1year; 
+      savefreq = 5*t1day;   
+      savefreqEZ = t1day;  
+      savefreqAvg = 5*t1day;
+      savefreqUMom = 5*t1day;
+      savefreqVMom = -1;
       savefreqThic = -1; 
     end
     
