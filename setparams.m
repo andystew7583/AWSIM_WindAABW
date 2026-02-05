@@ -4,32 +4,34 @@
 %%% Sets parameters for AWSIM. This file configures an ACC-like
 %%% channel.
 %%%
-%%% local_home_dir  Directory to hold simulation folder
-%%% run_name        Name of simulation
-%%% is_spinup       Set true if this is a spinup simulation, false if we're
-%%%                 averaging diagnostics online
-%%% grid_size       Number of meridional grid points
-%%% num_layers      Number of isopycnal layers to use (should be 2 or 3)
-%%% tau_mean        Time-mean wind stress in N/m^2
-%%% tau_pert        Amplitude of wind stress fluctuations in N/m^2
-%%% tau_freq        Period of wind stress fluctuations in s
-%%% AABW_mean       Time-mean AABW formation in Sv
-%%% AABW_pert       Amplitude of AABW formation fluctuations in Sv
-%%% AABW_freq       Period of AABW formation fluctuations in s
-%%% quad_drag       Quadratic drag coefficient (dimensionless)
-%%% lin_drag        Linear drag coefficient (m/s)
-%%% topog_width     Zonal width of topographic bump in km
-%%% topog_height    Height of topographic bump in m
-%%% rough_topog     Set true to add random bathymetry
-%%% restart_index   Index of the output file used to restart the run
-%%% end_time        Simulation end time (s)
+%%% local_home_dir    Directory to hold simulation folder
+%%% run_name          Name of simulation
+%%% is_spinup         Set true if this is a spinup simulation, false if we're
+%%%                   averaging diagnostics online
+%%% grid_size         Number of meridional grid points
+%%% num_layers        Number of isopycnal layers to use (should be 2 or 3)
+%%% tau_mean          Time-mean wind stress in N/m^2
+%%% tau_pert          Amplitude of wind stress fluctuations in N/m^2
+%%% tau_freq          Period of wind stress fluctuations in s
+%%% AABW_mean         Time-mean AABW formation in Sv
+%%% AABW_pert         Amplitude of AABW formation fluctuations in Sv
+%%% AABW_freq         Period of AABW formation fluctuations in s
+%%% quad_drag         Quadratic drag coefficient (dimensionless)
+%%% lin_drag          Linear drag coefficient (m/s)
+%%% topog_width       Zonal width of topographic bump in km
+%%% topog_height      Height of topographic bump in m
+%%% rough_topog       Set true to add random bathymetry
+%%% rough_topog_height RMS amplitude of random bathymetry
+%%% double_ridge      Set true to add a second ridge
+%%% restart_index     Index of the output file used to restart the run
+%%% end_time          Simulation end time (s)
 %%% 
 function setparams (local_home_dir,run_name, ...
   is_spinup,grid_size,num_layers, ...
   tau_mean,tau_pert,tau_freq, ...
   AABW_mean,AABW_pert,AABW_freq, ...
   quad_drag, lin_drag, topog_width, ...
-  topog_height,rough_topog,restart_index, end_time)
+  topog_height,rough_topog,rough_topog_height,double_ridge,restart_index, end_time)
 
   %%% Set true to run with random forcing, rather than periodic forcing.
   random_forcing = false;
@@ -51,12 +53,12 @@ function setparams (local_home_dir,run_name, ...
   use_cluster = true;
   use_intel = false;
   use_pbs = use_cluster;
-  % uname = 'astewart';
-  uname = 'andrewst';
-  % cluster_addr = 'caolila.atmos.ucla.edu';
-  cluster_addr = 'hoffman2.idre.ucla.edu';
-  % cluster_home_dir = '/jbod/astewart/AWSIM_WindAABW/runs_varywind';
-  cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
+  uname = 'astewart';
+  % uname = 'andrewst';
+  cluster_addr = 'lagavulin.atmos.ucla.edu';
+  % cluster_addr = 'hoffman2.idre.ucla.edu';
+  cluster_home_dir = '/jbod/astewart/AWSIM_WindAABW/runs_varywind';
+  % cluster_home_dir = '/u/scratch/a/andrewst/AWSIM_WindAABW/runs';
   
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,7 +77,7 @@ function setparams (local_home_dir,run_name, ...
   f0 = -1e-4;                   %%% Coriolis parameter
   beta = 1.5e-11;               %%% Coriolis parameter gradient
   beta_t = 0e-11;               %%% Topographic beta
-  Ly = 1600*m1km;               %%% Domain length.   
+  Ly = 1600*m1km;               %%% Domain length.     
   if (Nlay == 2)                %%% Reduced gravities at layer interfaces
     geff = [g .5e-2];
   end
@@ -83,13 +85,18 @@ function setparams (local_home_dir,run_name, ...
     geff = [g .5e-2 .2e-2];        
   end
   h0 = 0;                       %%% Salmon layer thickness  
-  if ((topog_width==150) && (topog_height==1000))
-    Xb = 1000*m1km;               %%% Zonal position of topography  
+  if ((topog_width==150) && (topog_height==1000))    
+    Xb = 1000*m1km;               %%% Zonal position of topography      
   else
     Xb = 1600*m1km;               %%% Zonal position of topography  
   end
+  if (double_ridge)
+    Xb = Ly/2;
+    Xb2 = 3*Ly/2;
+  end
   Wb = topog_width*m1km;                %%% Zonal width of topography  
   Hb = topog_height;                    %%% Height of topography  
+  Hrms = rough_topog_height;
   H = 4000;                     %%% Ocean depth  
   if (Nlay == 2)
     H0 = [1500 2500];        %%% Initial layer thicknesses - used for wave speed calculation  
@@ -241,11 +248,14 @@ function setparams (local_home_dir,run_name, ...
    
   %%% Latitudinal ridge
   etab = Hb*exp(-((XX_h-Xb)/Wb).^2);
+  if (double_ridge)
+    etab = etab+Hb*exp(-((XX_h-Xb2)/Wb).^2);
+  end
   etab = etab - H;
   
   %%% Add random topographic variations
   if (rough_topog)
-    etab_rough = -genBathy(400*m1km,0,150,-3,Nx,Ny,Lx,Ly); 
+    etab_rough = -genBathy(400*m1km,0,Hrms,-3,Nx,Ny,Lx,Ly); 
     etab = etab + etab_rough.*(0.25 + 0.75*(-H+Hb - etab)/Hb);
   end
   
