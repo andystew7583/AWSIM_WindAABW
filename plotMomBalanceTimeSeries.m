@@ -21,10 +21,10 @@ quad_drag = 2e-3;
 lin_drag = 0e-4;  
 topog_width = 150;
 topog_height = 1000;
-rough_topog = true;
+rough_topog = false;
 rough_topog_height = 50;
 double_wind = true;
-double_ridge = false;
+double_ridge = true;
 n_E_batch = 1:10;
 
 run_name = constructRunName (false,Ny,Nlay, ...

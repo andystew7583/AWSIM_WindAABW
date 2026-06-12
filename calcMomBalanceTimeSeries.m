@@ -21,10 +21,10 @@ quad_drag = 2e-3;
 lin_drag = 0e-4;  
 topog_width = 150;
 topog_height = 1000;
-rough_topog = true;
+rough_topog = false;
 rough_topog_height = 50;
 double_wind = true;
-double_ridge = false;
+double_ridge = true;
 n_E_batch = 1:10;
 
 init = true;
@@ -246,9 +246,16 @@ for n_E = n_E_batch
     %%% Latitudinal ridge
     Wb = 150*1000;
     Xb = 1000*m1km;
+    if (double_ridge)
+      Xb = Ly/2;
+      Xb2 = 3*Ly/2;
+    end
     Hb = 1000;
     H = 4000;
     etab_ridge = Hb*exp(-((XX_h-Xb)/Wb).^2);    
+    if (double_ridge)
+      etab_ridge = etab_ridge+Hb*exp(-((XX_h-Xb2)/Wb).^2);
+    end
     etab_ridge = etab_ridge - H;
     etab_bumps = hhb - etab_ridge;
     
