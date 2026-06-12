@@ -115,9 +115,12 @@ for n_E = n_E_batch
   %%% Initialize storage arrays
   if (init)
     formStress = zeros(Nlay,Niters,length(n_E_batch));
-    formStress_tot = zeros(1,Niters,length(n_E_batch));
-    formStress_ridge = zeros(1,Niters,length(n_E_batch));
-    formStress_bumps = zeros(1,Niters,length(n_E_batch));
+    formStress_mean_tot = zeros(Nlay,Niters,length(n_E_batch));
+    formStress_mean_ridge = zeros(Nlay,Niters,length(n_E_batch));
+    formStress_mean_bumps = zeros(Nlay,Niters,length(n_E_batch));
+    TFS_tot = zeros(Nlay,Niters,length(n_E_batch));
+    TFS_ridge = zeros(Nlay,Niters,length(n_E_batch));
+    TFS_bumps = zeros(Nlay,Niters,length(n_E_batch));
     MOC = zeros(Nlay,Niters,length(n_E_batch));
     surfStress = zeros(1,Niters,length(n_E_batch));
     formStress_mid = zeros(Nlay,Niters,length(n_E_batch));
@@ -162,6 +165,10 @@ for n_E = n_E_batch
         hu(k,:,:) = readOutputFile(data_file,Nx,Ny);
         data_file = fullfile(dirpath,[OUTN_U_AVG,num2str(k-1),'_n=',num2str(n),'.dat']);
         u(k,:,:) = readOutputFile(data_file,Nx,Ny);
+        data_file = fullfile(dirpath,[OUTN_H_AVG,num2str(k-1),'_n=',num2str(n),'.dat']);
+        h(k,:,:) = readOutputFile(data_file,Nx,Ny);
+        data_file = fullfile(dirpath,[OUTN_M_AVG,num2str(k-1),'_n=',num2str(n),'.dat']);
+        M(k,:,:) = readOutputFile(data_file,Nx,Ny);
       end
       
       surfStress(1,n,n_E) = sum(sum(sum(taux*dx*dy*rho0)));
@@ -213,12 +220,28 @@ for n_E = n_E_batch
       hdMdx = h_w.*(M(:,1:Nx,:)-M(:,[Nx 1:Nx-1],:))/dx;
       
     end
+
+    
       
     %%% Form stress
     hdMdx_int = squeeze(sum(sum(hdMdx,2),3)*dx*dy*rho0);
     formStress(:,n,n_E) = -cumsum(hdMdx_int,1);
     hdMdx_int = squeeze(sum(sum(hdMdx(:,:,Ny/4:3*Ny/4),2),3)*dx*dy*rho0);
     formStress_mid(:,n,n_E) = -cumsum(hdMdx_int,1);
+
+    %%% Form stress decomposition
+    h_yavg = mean(h,3);
+    M_yavg = mean(M,3);
+    hw_yavg = 0.5*(h_yavg(:,1:Nx)+h_yavg(:,[Nx 1:Nx-1]));
+    dMdx_yavg = (M_yavg(:,1:Nx)-M_yavg(:,[Nx 1:Nx-1])) / dx;    
+    h_w = 0.5*(h(:,1:Nx,:)+h(:,[Nx 1:Nx-1],:));
+    hdMdx_mean = h_w.*(M(:,1:Nx,:)-M(:,[Nx 1:Nx-1],:))/dx;    
+    hdMdx_mean_int = -squeeze(sum(sum(hdMdx_mean,2),3)*dx*dy*rho0);
+    hdMdx_mean_ridge = -repmat(hw_yavg.*dMdx_yavg,[1 1 Ny]);
+    hdMdx_mean_ridge_int = squeeze(sum(sum(hdMdx_mean_ridge,2),3)*dx*dy*rho0);
+    formStress_mean_tot(:,n,n_E) = -cumsum(hdMdx_mean_int,1);
+    formStress_mean_ridge(:,n,n_E) = -cumsum(hdMdx_mean_ridge_int,1);
+    formStress_mean_bumps(:,n,n_E) = formStress_mean_tot(:,n,n_E) - formStress_mean_ridge(:,n,n_E);
 
     %%% Latitudinal ridge
     Wb = 150*1000;
@@ -227,7 +250,7 @@ for n_E = n_E_batch
     H = 4000;
     etab_ridge = Hb*exp(-((XX_h-Xb)/Wb).^2);    
     etab_ridge = etab_ridge - H;
-    etab_bumps = hhb - etab;
+    etab_bumps = hhb - etab_ridge;
     
     %%% Load instantaneous model state    
     for k=1:Nlay
@@ -237,9 +260,9 @@ for n_E = n_E_batch
     detab_dx = (hhb(1:Nx,:) - hhb([Nx 1:Nx-1],:)) / dx;
     detab_ridge_dx = (etab_ridge(1:Nx,:) - etab_ridge([Nx 1:Nx-1],:)) / dx;
     detab_bumps_dx = (etab_bumps(1:Nx,:) - etab_bumps([Nx 1:Nx-1],:)) / dx;
-    formStress_tot(1,n,n_E) = sum(sum(squeeze(0.5*(M(Nlay,1:Nx,:)+M(Nlay,[Nx 1:Nx-1],:))).*detab_dx*dx*dy*rho0,1),2);
-    formStress_ridge(1,n,n_E) = sum(sum(squeeze(0.5*(M(Nlay,1:Nx,:)+M(Nlay,[Nx 1:Nx-1],:))).*detab_ridge_dx*dx*dy*rho0,1),2);
-    formStress_bumps(1,n,n_E) = sum(sum(squeeze(0.5*(M(Nlay,1:Nx,:)+M(Nlay,[Nx 1:Nx-1],:))).*detab_bumps_dx*dx*dy*rho0,1),2);
+    TFS_tot(1,n,n_E) = sum(sum(squeeze(0.5*(M(Nlay,1:Nx,:)+M(Nlay,[Nx 1:Nx-1],:))).*detab_dx*dx*dy*rho0,1),2);
+    TFS_ridge(1,n,n_E) = sum(sum(squeeze(0.5*(M(Nlay,1:Nx,:)+M(Nlay,[Nx 1:Nx-1],:))).*detab_ridge_dx*dx*dy*rho0,1),2);
+    TFS_bumps(1,n,n_E) = sum(sum(squeeze(0.5*(M(Nlay,1:Nx,:)+M(Nlay,[Nx 1:Nx-1],:))).*detab_bumps_dx*dx*dy*rho0,1),2);
  
   end
   
@@ -260,5 +283,6 @@ save(fullfile(prod_dir,[run_name,'_MomBalance.mat']), ...
   'tt','formStress','surfStress','MOC', ...
   'formStress_mid','surfStress_mid','MOC_mid', ...
   'Tacc','Tacc_bt','Tacc_bc', ...
-  'formStress_tot','formStress_bumps','formStress_ridge', ...
+  'formStress_mean_tot','formStress_mean_bumps','formStress_mean_ridge', ...
+  'TFS_tot','TFS_bumps','TFS_ridge', ...
   '-v7.3');

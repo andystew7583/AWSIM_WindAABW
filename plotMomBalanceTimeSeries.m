@@ -22,7 +22,7 @@ lin_drag = 0e-4;
 topog_width = 150;
 topog_height = 1000;
 rough_topog = true;
-rough_topog_height = 150;
+rough_topog_height = 50;
 double_wind = true;
 double_ridge = false;
 n_E_batch = 1:10;
@@ -106,14 +106,46 @@ title('ACC transport');
 xlabel('Time (years)')
 ylabel('Sv');
 
-
 %%% Sample plot
 figure(6);
-plot(tt/t1year,mean(formStress(3,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress(1,:,:),3)/Lx/Ly);
 hold on;
 % plot(tt/t1year,mean(formStress_ridge(1,:,:)+formStress_bumps(1,:,:),3)/Lx/Ly);
-plot(tt/t1year,mean(formStress_ridge(1,:,:),3)/Lx/Ly);
-plot(tt/t1year,mean(formStress_bumps(1,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress_mean_ridge(1,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress_mean_bumps(1,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress(1,:,:)-formStress_mean_tot(1,:,:),3)/Lx/Ly);
+hold off;
+legend('IFS','IFS (ridge)','IFS (bumps)');
+title('IFS_u_p_p_e_r, channel-averaged');
+xlabel('Time (years)')
+ylabel('N/m^2');
+
+%%% Sample plot
+figure(7);
+plot(tt/t1year,mean(formStress(2,:,:),3)/Lx/Ly);
+hold on;
+% plot(tt/t1year,mean(formStress_ridge(1,:,:)+formStress_bumps(1,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress_mean_ridge(2,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress_mean_bumps(2,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress(2,:,:)-formStress_mean_tot(2,:,:),3)/Lx/Ly);
+hold off;
+legend('IFS','IFS (ridge)','IFS (bumps)');
+title('IFS_l_o_w_e_r decomposition, channel-averaged');
+xlabel('Time (years)')
+ylabel('N/m^2');
+
+
+%%% Sample plot
+figure(8);
+colororder = get(gca,'ColorOrder');
+plot(tt/t1year,mean(formStress_mean_tot(3,:,:),3)/Lx/Ly,'Color',colororder(1,:));
+plot(tt/t1year,mean(TFS_tot(1,:,:),3)/Lx/Ly,'--','Color',colororder(1,:));
+hold on;
+% plot(tt/t1year,mean(formStress_ridge(1,:,:)+formStress_bumps(1,:,:),3)/Lx/Ly);
+plot(tt/t1year,mean(formStress_mean_ridge(3,:,:),3)/Lx/Ly,'Color',colororder(2,:));
+plot(tt/t1year,mean(TFS_ridge(1,:,:),3)/Lx/Ly,'--','Color',colororder(2,:));
+plot(tt/t1year,mean(formStress_mean_bumps(3,:,:),3)/Lx/Ly,'Color',colororder(3,:));
+plot(tt/t1year,mean(TFS_bumps(1,:,:),3)/Lx/Ly,'--','Color',colororder(3,:));
 hold off;
 legend('TFS','TFS (ridge)','TFS (bumps)');
 title('TFS decomposition, channel-averaged');
