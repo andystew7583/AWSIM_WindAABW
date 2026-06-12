@@ -386,6 +386,9 @@ function setparams (local_home_dir,run_name, ...
   %%%%% INITIAL CONDITIONS %%%%%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
+  %%% Reset rng seed using current time in milliseconds
+  rng(mod(round(now()*86400*1000),2^32));
+
     %%% Set sea surface height
   Rd = c/abs(f0)
   lambdaK = 4*Rd;  

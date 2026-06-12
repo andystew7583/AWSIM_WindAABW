@@ -128,6 +128,7 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         pcolor(XX_q/1000,YY_q/1000,log10(abs(pv)));
         shading interp;
         colorbar;
+        caxis([-7.5 -6.5]);
 %         colormap(pmkmp(100,'Swtth'));
         colormap(cmocean('balance'));
         title(strcat(['PV at t=',num2str(t/t1year,'%.2f'),' years']));        

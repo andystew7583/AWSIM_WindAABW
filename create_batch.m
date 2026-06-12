@@ -21,30 +21,31 @@ cluster_home_dir = '/data/jbod/astewart/AWSIM_WindAABW/runs_varywind';
 %%% Spinup simulations are long and produce no diagnostics; diagnostic
 %%% simulations output high-frequency diagnostics to resolve the forcing
 %%% period
-is_spinup = true;
+is_spinup = false;
 
 %%% For non-spinup runs (i.e. production runs), start from the end of a
 %%% corresponding spinup run with no time-variation in the forcing
-start_from_steady_forcing = false;
-
-%%% For wind doubling experiment batches - only for non-spinup runs
-double_wind = false;
+start_from_steady_forcing = true;
 
 %%% Set true to extend a previous run
 extend_run = false;
+
 
 %%% Grid resolution 
 Ny = 128;
 Nlay = 3;
 
-%%% N.B. Batches run so far:
-%%%
-%%% N=128, steady wind with tau=0.15, no rough topog, 10 ensemble members
-%%% spinup runs
-%%% N=128, steady wind with tau=0.15, Taabw=1.5, no rough topog, 10 ensemble members
-%%% spinup runs
-%%% N=128, oscillating wind with tau=0.15, dtau=0.075, no rough topog, 10 ensemble members
-%%% production runs
+
+
+%%% DEFAULTS - OVERRIDE BELOW
+
+%%% For wind doubling experiment batches - only for non-spinup runs
+double_wind = false;
+
+%%% For runs with a double ridge
+double_ridge = false;
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Parameter selection %%%
@@ -60,21 +61,16 @@ Nlay = 3;
 % topog_width = 150;
 % topog_height = 1000;
 
-%%% Steady forcing ensemble with double ridge plus AABW
-Nensemble = 10;
-tau_mean = [0.15];
-tau_pert = 0;
-tau_freq = 0;
-AABW_mean = 1.5;
-AABW_pert = 0;
-AABW_freq = 0;
-quad_drag = 2e-3;
-lin_drag = 0e-4;  
-topog_width = 150;
-topog_height = 1000;
-rough_topog = false;
-rough_topog_height = 150;
-double_ridge = true;
+
+
+
+
+
+
+
+
+
+
 
 %%% Steady forcing ensemble with double ridge
 % Nensemble = 10;
@@ -90,13 +86,13 @@ double_ridge = true;
 % topog_height = 1000;
 % rough_topog = false;
 % rough_topog_height = 150;
-% double_ridge = true;
+% double_ridge = true; %%% Overwrite default
 
-%%% Perturbation ensemble with rough topography
+%%% Double wind ensemble with double ridge
 % Nensemble = 10;
 % tau_mean = [0.15];
-% tau_pert = 0.075;
-% tau_freq = t1year .* 2.^[-3:1:4];
+% tau_pert = 0;
+% tau_freq = 0;
 % AABW_mean = 0;
 % AABW_pert = 0;
 % AABW_freq = 0;
@@ -104,9 +100,61 @@ double_ridge = true;
 % lin_drag = 0e-4;  
 % topog_width = 150;
 % topog_height = 1000;
-% rough_topog = true;
+% rough_topog = false;
+% rough_topog_height = 150;
+% double_ridge = true; %%% Overwrite default
+% double_wind = true; %%% Overwrite default
 
-% %%% Steady forcing ensemble with rough topography
+%%% Steady forcing ensemble with double ridge plus AABW
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 1.5;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+% rough_topog_height = 150;
+% double_ridge = true; %%% Overwrite default
+
+%%% Double wind ensemble with double ridge plus AABW
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 1.5;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+% rough_topog_height = 150;
+% double_ridge = true; %%% Overwrite default
+% double_wind = true; %%% Overwrite default
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% %%% Steady forcing ensemble with  varying rough topography heights
 % Nensemble = 10;
 % tau_mean = [0.15];
 % tau_pert = 0;
@@ -121,21 +169,7 @@ double_ridge = true;
 % rough_topog = true;
 % rough_topog_height = [50 100 150];
 
-%%% Perturbation ensemble with smooth topography
-% Nensemble = 10;
-% tau_mean = [0.15];
-% tau_pert = 0.075;
-% tau_freq = t1year .* 2.^[-3:1:4];
-% AABW_mean = 0;
-% AABW_pert = 0;
-% AABW_freq = 0;
-% quad_drag = 2e-3;
-% lin_drag = 0e-4;  
-% topog_width = 150;
-% topog_height = 1000;
-% rough_topog = false;
-
-%%% Steady forcing ensemble with smooth topography
+%%% Wind doubling ensemble with varying rough topography heights
 % Nensemble = 10;
 % tau_mean = [0.15];
 % tau_pert = 0;
@@ -147,14 +181,55 @@ double_ridge = true;
 % lin_drag = 0e-4;  
 % topog_width = 150;
 % topog_height = 1000;
-% rough_topog = false;
+% rough_topog = true;
+% rough_topog_height = [50 100 150];
+% double_wind = true; %%% Overwrite default
 
-%%% Perturbation ensemble with smooth topography plus AABW
+%%% Steady forcing ensemble with  varying rough topography heights and MOC
 % Nensemble = 10;
 % tau_mean = [0.15];
-% tau_pert = 0.075;
-% tau_freq = t1year .* 2.^[-3:1:4];
+% tau_pert = 0;
+% tau_freq = 0;
 % AABW_mean = 1.5;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = true;
+% rough_topog_height = [50 100 150];
+
+%%% Wind doubling ensemble with  varying rough topography heights and MOC
+Nensemble = 10;
+tau_mean = [0.15];
+tau_pert = 0;
+tau_freq = 0;
+AABW_mean = 1.5;
+AABW_pert = 0;
+AABW_freq = 0;
+quad_drag = 2e-3;
+lin_drag = 0e-4;  
+topog_width = 150;
+topog_height = 1000;
+rough_topog = true;
+rough_topog_height = [50 100 150];
+double_wind = true; %%% Overwrite default
+
+
+
+
+
+
+
+
+
+%%% Steady forcing ensemble with smooth topography
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0;
+% tau_freq = 0;
+% AABW_mean = 0;
 % AABW_pert = 0;
 % AABW_freq = 0;
 % quad_drag = 2e-3;
@@ -177,6 +252,49 @@ double_ridge = true;
 % topog_height = 1000;
 % rough_topog = false;
 
+%%% Perturbation ensemble with smooth topography plus AABW
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0.075;
+% tau_freq = t1year .* 2.^[-3:1:4];
+% AABW_mean = 1.5;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+
+%%% Perturbation ensemble with rough topography
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0.075;
+% tau_freq = t1year .* 2.^[-3:1:4];
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = true;
+
+%%% Perturbation ensemble with smooth topography
+% Nensemble = 10;
+% tau_mean = [0.15];
+% tau_pert = 0.075;
+% tau_freq = t1year .* 2.^[-3:1:4];
+% AABW_mean = 0;
+% AABW_pert = 0;
+% AABW_freq = 0;
+% quad_drag = 2e-3;
+% lin_drag = 0e-4;  
+% topog_width = 150;
+% topog_height = 1000;
+% rough_topog = false;
+
+
 %%% Perturbation ensemble with rough topography plus AABW
 % Nensemble = 10;
 % tau_mean = [0.15];
@@ -191,20 +309,12 @@ double_ridge = true;
 % topog_height = 1000;
 % rough_topog = true;
 
-%%% Steady forcing ensemble with rough topography plus AABW
-% Nensemble = 10;
-% tau_mean = [0.15];
-% tau_pert = 0;
-% tau_freq = 0;
-% AABW_mean = 1.5;
-% AABW_pert = 0;
-% AABW_freq = 0;
-% quad_drag = 2e-3;
-% lin_drag = 0e-4;  
-% topog_width = 150;
-% topog_height = 1000;
-% rough_topog = true;
-% rough_topog_height = [50 100 150];
+
+
+
+
+
+
 
 %%% Wind doubling ensemble
 % Nensemble = 10;
@@ -261,6 +371,13 @@ double_ridge = true;
 % topog_width = 150;
 % topog_height = 1000;
 % rough_topog = true;
+
+
+
+
+
+
+
 
 %%% Script files
 run_batch_fname = 'run_batch.sh';
