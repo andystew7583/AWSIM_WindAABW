@@ -128,6 +128,7 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         pcolor(XX_q/1000,YY_q/1000,log10(abs(pv)));
         shading interp;
         colorbar;
+        caxis([-7.5 -6.5]);
 %         colormap(pmkmp(100,'Swtth'));
         colormap(cmocean('balance'));
         title(strcat(['PV at t=',num2str(t/t1year,'%.2f'),' years']));        
@@ -156,6 +157,85 @@ function M = anim (local_home_dir,run_name,var,layer,tmin,tmax)
         colorbar;
         title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
         colormap jet;      
+
+
+      %%% Plot QG streamfunction
+      case 'psig'
+
+        %%% Reference layer thicknesses for QG approx
+        HH = [1000 1500 1500]';
+        
+        %%% Reference Coriolis parameter and beta for QG approx
+        f0 = mean(mean(0.25 * (2*Omega_z(1:Nx,1:Ny) + 2*Omega_z(1:Nx,2:Ny+1) + 2*Omega_z(2:Nx+1,1:Ny) + 2*Omega_z(2:Nx+1,2:Ny+1))));
+        
+        %%% Calculate layer surface height
+        eta = zeros(Nx,Ny,Nlay+1);
+        eta(:,:,Nlay+1) = hhb;
+        for k=Nlay:-1:layer
+
+          %%% Load kth layer thickness
+          data_file = fullfile(dirpath,[OUTN_H,num2str(k-1),'_n=',num2str(n),'.dat']);
+          hh = readOutputFile(data_file,Nx,Ny);      
+          
+          %%% Add layer thickness to eta
+          eta(:,:,k) = eta(:,:,k+1) + hh;
+          
+        end
+
+        %%% Read surface pressure
+        data_file = fullfile(dirpath,[OUTN_PI,'_n=',num2str(n),'.dat']);
+        pi = readOutputFile(data_file,Nx,Ny);
+        
+        %%% Compute QG streamfunction
+        [psig,etag] = calcQGStreamfunction (pi,eta,HH,gg,f0);
+
+        %%% Make the plot
+        pcolor(XX_h/1000,YY_h/1000,psig(:,:,layer));
+        shading interp;
+        colorbar;
+        title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
+        colormap redblue;    
+
+      %%% Plot baroclinic modes of QG streamfunction
+      case 'psim'
+
+        %%% Reference layer thicknesses for QG approx
+        HH = [1000 1500 1500]';
+        
+        %%% Reference Coriolis parameter and beta for QG approx
+        f0 = mean(mean(0.25 * (2*Omega_z(1:Nx,1:Ny) + 2*Omega_z(1:Nx,2:Ny+1) + 2*Omega_z(2:Nx+1,1:Ny) + 2*Omega_z(2:Nx+1,2:Ny+1))));
+        
+        %%% Calculate layer surface height
+        eta = zeros(Nx,Ny,Nlay+1);
+        eta(:,:,Nlay+1) = hhb;
+        for k=Nlay:-1:layer
+
+          %%% Load kth layer thickness
+          data_file = fullfile(dirpath,[OUTN_H,num2str(k-1),'_n=',num2str(n),'.dat']);
+          hh = readOutputFile(data_file,Nx,Ny);      
+          
+          %%% Add layer thickness to eta
+          eta(:,:,k) = eta(:,:,k+1) + hh;
+          
+        end
+
+        %%% Read surface pressure
+        data_file = fullfile(dirpath,[OUTN_PI,'_n=',num2str(n),'.dat']);
+        pi = readOutputFile(data_file,Nx,Ny);
+        
+        %%% Compute QG streamfunction
+        [psig,etag] = calcQGStreamfunction (pi,eta,HH,gg,f0);
+
+        %%% Compute baroclinic modes
+        [Mpsig,EE,eps] = calcBaroclinicModes (psig,HH,gg); 
+
+        %%% Make the plot
+        pcolor(XX_h/1000,YY_h/1000,Mpsig(:,:,layer));
+        shading interp;
+        colorbar;
+        title(strcat(['t=',num2str(t/t1day,'%.2f'),' days']));
+        colormap redblue;  
+        caxis([-2 2]*1e6);
 
       %%% Plot planetary pv
       case 'w'

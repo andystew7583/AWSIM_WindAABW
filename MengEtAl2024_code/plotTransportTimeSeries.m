@@ -2,8 +2,10 @@
 %%% Load parameters   
 % local_home_dir = '/Volumes/LaCie/UCLA/Projects/AWSIM_WindAABW/runs';
 % run_name = 'test_run';
-local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
-run_name = 'ACC_AABW_ML_doubleMOC_hires';
+% local_home_dir = '/Volumes/Kilchoman/UCLA/Projects/AWSIM/runs';
+% run_name = 'ACC_AABW_ML_doubleMOC_hires';
+local_home_dir = '/Volumes/Stewart-RAID1-A/UCLA/Projects/AWSIM_WindAABW/runs_varywind';
+run_name = 'ACC_AABW_Ny128_Nlay3_tauM0.15_tauP0_tauF0_wDiaM0_wDiaP0_wDiaF0_Cd2.000e-03_rb0.000e+00_2xwind_E10_diags';
 loadParams;
 dirpath = fullfile(local_home_dir,run_name);
 
